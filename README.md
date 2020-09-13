@@ -302,7 +302,7 @@ To get VIN number retrieval, must get the most recent ```python-OBD``` source co
 # get latest python-OBD from github repository
 git clone https://github.com/brendan-w/python-OBD.git
 cd python-OBD
-python3.8 setup.py build
+python3.8 setup.py sdist
 python3.8 -m pip install --user .
 ```
 
@@ -314,7 +314,7 @@ Install this software:
 # get latest version of this software from github repository
 git clone https://github.com/thatlarrypearson/telemetry-obd.git
 cd telemetry-obd
-python3.8 setup.py build
+python3.8 setup.py sdist
 python3.8 -m pip install --user .
 ```
 
