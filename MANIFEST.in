@@ -1,0 +1,7 @@
+graft telemetry_obd/*.py
+graft bin
+graft etc
+graft config/default.ini
+global-exclude *.py[co]
+prune .mypy_cache
+prune .pytest_cache

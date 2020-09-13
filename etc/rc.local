@@ -1,0 +1,28 @@
+#!/bin/sh -e
+#
+# rc.local
+#
+# This script is executed at the end of each multiuser runlevel.
+# Make sure that the script will "exit 0" on success or any other
+# value on error.
+#
+# In order to enable or disable this script just change the execution
+# bits.
+#
+# By default this script does nothing.
+
+# Print the IP address
+_IP=$(hostname -I) || true
+if [ "$_IP" ]; then
+  printf "My IP address is %s\n" "$_IP"
+fi
+
+# Bind the paired OBDII device to /dev/rfcomm0
+rfcomm bind rfcomm0 00:19:5D:26:4B:5F
+
+# Run the script RaspberryPi-Auto-Run.sh as user "${OBD_USER}" and group "dialout"
+export OBD_USER=human
+export OBD_HOME="/home/${OBD_USER}/"
+runuser -u "${OBD_USER}" -g dialout "${OBD_HOME}/src/telemetry-obd/bin/RaspberryPi-Auto-Run.sh" > /tmp/obd-log.$$ 2>&1
+
+exit 0
