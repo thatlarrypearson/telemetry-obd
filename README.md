@@ -14,9 +14,9 @@ The Telemetry OBD Logger application command line interface (CLI) is as follows:
 
 ```bash
 PS C:\Users\human\src\telemetry-obd> python3.8 -m telemetry_obd.obd_logger  --help
-usage: obd_logger.py [-h] [--config_file CONFIG_FILE] [--config_dir CONFIG_DIR] [--full_cycles FULL_CYCLES]
-                     [--logging] [--verbose]
-                     [base_path]
+usage:  obd_logger.py [-h] [--config_file CONFIG_FILE] [--config_dir CONFIG_DIR]
+        [--full_cycles FULL_CYCLES] [--timeout TIMEOUT] [--logging] [--no_fast] [--verbose]
+        [base_path]
 
 Telemetry OBD Logger
 
@@ -31,7 +31,11 @@ optional arguments:
                         Settings directory path. Defaults to './config'.
   --full_cycles FULL_CYCLES
                         The number of full cycles before a new output file is started. Default is 50.
+  --timeout TIMEOUT     The number seconds before the current command times out. Default is 0.5 seconds.
   --logging             Turn on logging in python-obd library. Default is off.
+  --no_fast             When on, commands for every request will be unaltered with potentially long timeouts when
+                        the car doesn't respond promptly or at all. When off (fast is on), commands are optimized
+                        before being sent to the car. A timeout is added at the end of the command. Default is off.
   --verbose             Turn verbose output on. Default is off.
 PS C:\Users\human\src\telemetry-obd>
 ```
@@ -63,11 +67,11 @@ A list of OBD commands that have fast changing return values such as ```RPM```, 
 
 #### Full Cycle
 
-The repeating part of the OBD command pattern is called a "full cycle" and has OBD commands from Cycle executed a group followed by the next Housekeeping command.  This basic pattern repeats over and over.  When the end of the Housekeeping commands is reached, a "Full Cycle" has been achieved.
+The repeating part of the OBD command pattern is called a "full cycle" and has OBD commands from Cycle executed in a group followed by the next Housekeeping command.  This basic pattern repeats over and over.  When the end of the Housekeeping commands is reached, a "Full Cycle" has been achieved.
 
 The total number of command submissions in a full cycle is the ```count of commands in Housekeeping``` times (one plus the ```count of commands in Cycle```).
 
-The ```--full_cycles``` parameter is used to set the number of ```full_cycles``` contained in output data files.  Once the ```--full_cycles``` limit is reached, the data file is closed and a new one is opened.  This keeps loss of data from unplanned Raspberry Pi shutdowns to a minimum.
+The ```--full_cycles``` parameter is used to set the number of ```full_cycles``` contained in output data files.  Once the ```--full_cycles``` limit is reached, the data file is closed and a new one is opened.  This keeps data loss from unplanned Raspberry Pi shutdowns to a minimum.
 
 ### Telemetry OBD Logger Configuration Files
 
@@ -76,6 +80,19 @@ Configuration files are used to tell OBD Logger what OBD commands to send the ve
 #### Default Configuration File
 
 A default configuration file is included in the repository at ```config/default.ini```.  This configuration file contains every known possible OBD command.  Wide variations in supported command sets by manufacturer, model, trim level and year exist.  By starting out with this configuration file, OBD Logger will try all commands.  After a full cycle is run, unsupported commands will respond with ```"obd_response_value": "not supported"``` in the output data.  The Python program ```configuration_file_validation.py``` identifies good commands.  The generated list of good commands can be used to create a vehicle specific configuration file.
+
+Some commands will result in an OBD response value of ```"not supported"``` (```"obd_response_value": "not supported"```) when the vehicle is unable to satisfy the OBD data request quickly enough.  You can identify this problem by searching for all responses for a particular command and seeing if sometimes the command responds with ```"not supported"``` or with a value.
+
+For example, 2017 Ford F-450 truck ```FUEL_RATE``` command in the ```cycle``` section of the configuration file returned mixed results.  In 1,124 attempts, 1084 responded with a good value while 40 responded with ```not supported```.
+
+```bash
+human@computer:data/FT8W4DT5HED00000$ grep FUEL_RATE FT8W4DT5HED00000-20210910204443-utc.json | grep "not supported" | wc -l
+40
+human@computer:data/FT8W4DT5HED00000$ grep FUEL_RATE FT8W4DT5HED00000-20210910204443-utc.json | grep -v "not supported" | wc -l
+1084
+```
+
+This problem can be solved by increasing the OBD command timeout from its default to a higher value.  Use the ```--timeout``` setting when invoking the ```obd_logger``` command.
 
 #### Sample Configuration File For 2013 Jeep Wrangler Rubicon
 
@@ -154,10 +171,13 @@ Output data files are in a hybrid format.  Data files contain records separated 
 
 * ```command_name```
   OBD command name submitted to vehicle.
+
 * ```obd_response_value```
   OBD response value returned by the vehicle.  When the OBD command is not supported, the response is ```"not supported"```.  Response values are either a string like ```"not supported"``` and ```"TEST_VIN_22_CHARS"``` or they are a [Pint](https://pint.readthedocs.io/en/stable/) encoded value like ```"25 degC"``` and ```"101 kilopascal"```.
+
 * ```iso_ts_pre```
   ISO formatted timestamp taken before the OBD command was issued to the vehicle (```datetime.isoformat(datetime.now(tz=timezone.utc))```).
+
 * ```iso_ts_post```
   ISO formatted timestamp taken after the OBD command was issued to the vehicle (```datetime.isoformat(datetime.now(tz=timezone.utc))```).
 
@@ -223,7 +243,7 @@ optional arguments:
 PS C:\Users\human\src\telemetry-obd>
 ```
 
-The OBD Logger program defaults to using the ```"default.ini"``` configuration file.  This file, included in the software distribution under ```"config/default.ini"``` contains all the known OBD commands.  Because of the wide variations in supported command sets by manufacturer, model, trim level and year made, it is difficult to know what OBD commands a specific car will respond to. Additionally, manufacturers don't typically publish lists of valid OBD commands for each vehicle sold.  This try them all method seems to be the only approach to identifying which OBD commands a specific vehicle will respond to.
+The OBD Logger program defaults to using the ```"default.ini"``` configuration file.  This file, included in the software distribution under ```"config/default.ini"``` contains all the known OBD commands.  Because of the wide variations in supported command sets by manufacturer, model, trim level and year made, it is difficult to know what OBD commands a specific car will respond to. Additionally, manufacturers don't typically publish lists of valid OBD commands for each vehicle sold.  This "try-them-all" method seems to be the only approach to identifying which OBD commands a specific vehicle will respond to.
 
 Once all the possible known OBD commands have been tried, it becomes possible to create a list of valid known commands to be used in the creation of a vehicle specific configuration file.  The OBD Logger software was written to automatically choose configuration files appropriately named ```"<VIN>.ini"``` by default.  If the ```"<VIN>.ini"``` isn't available, then the other default, ```"default.ini"```, is chosen by default.
 
@@ -350,7 +370,7 @@ crw-rw---- 1 root dialout 120, 0 Aug 13 15:47 /dev/rfcomm0
 human@telemetry-1:~ $ sudo adduser human dialout
 ```
 
-# Headless Operation On Raspberry Pi
+## Headless Operation On Raspberry Pi
 
 In order to reliably run in an automotive environment, the OBD Logger application needs to start automatically after all preconditions are satisfied.  That is, the application must start without any user interaction.  The trigger for starting the application is powering up the Raspberry Pi system.
 
@@ -361,7 +381,7 @@ On the Raspberry Pi, commands embedded in "```/etc/rc.local```" will be run at t
 #
 # rc.local
 #
-# This script is executed at the end of each multiuser runlevel.
+# This script is executed at the end of each multi-user run-level.
 # Make sure that the script will "exit 0" on success or any other
 # value on error.
 #

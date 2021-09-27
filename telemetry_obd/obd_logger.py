@@ -21,11 +21,12 @@ from .obd_common_functions import (
 
 CONNECTION_WAIT_DELAY = 15.0
 FULL_CYCLES_COUNT = 50
+TIMEOUT=0.5
 
 logger = logging.getLogger(__name__)
 
-def main():
-    """Run main function."""
+def argument_parsing()-> dict:
+    """Argument parsing"""
     parser = ArgumentParser(description="Telemetry OBD Logger")
     parser.add_argument(
         "base_path",
@@ -54,8 +55,26 @@ def main():
         )
     )
     parser.add_argument(
+        '--timeout',
+        type=float,
+        default=TIMEOUT,
+        help=(
+            "The number seconds before the current command times out." +
+            f"  Default is {TIMEOUT} seconds."
+        )
+    )
+    parser.add_argument(
         "--logging",
         help="Turn on logging in python-obd library. Default is off.",
+        default=False,
+        action='store_true'
+    )
+    parser.add_argument(
+        "--no_fast",
+        help="When on, commands for every request will be unaltered with potentially long timeouts " +
+        "when the car doesn't respond promptly or at all. " +
+        "When off (fast is on), commands are optimized before being sent to the car. A timeout is " + 
+        "added at the end of the command.  Default is off. ",
         default=False,
         action='store_true'
     )
@@ -65,13 +84,22 @@ def main():
         default=False,
         action='store_true'
     )
-    args = vars(parser.parse_args())
+    return vars(parser.parse_args())
+
+def main():
+    """Run main function."""
+
+    args = argument_parsing()
 
     if args['logging']:
         logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
         obd.logger.setLevel(obd.logging.DEBUG)
 
-    connection = obd.OBD()
+    fast = not args['no_fast']
+    timeout = args['timeout']
+
+    # OBD(portstr=None, baudrate=None, protocol=None, fast=True, timeout=0.1, check_voltage=True)
+    connection = obd.OBD(fast=fast, timeout=timeout)
     while not connection.is_connected():
         if connection.status() == obd.OBDStatus.NOT_CONNECTED:
             print("ELM Adapter Not Found, Ending")
