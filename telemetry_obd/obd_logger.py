@@ -20,7 +20,7 @@ from .obd_common_functions import (
 
 CONNECTION_WAIT_DELAY = 15.0
 FULL_CYCLES_COUNT = 50
-TIMEOUT=0.5
+TIMEOUT=1.0
 
 logger = logging.getLogger(__name__)
 

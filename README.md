@@ -31,7 +31,7 @@ optional arguments:
                         Settings directory path. Defaults to './config'.
   --full_cycles FULL_CYCLES
                         The number of full cycles before a new output file is started. Default is 50.
-  --timeout TIMEOUT     The number seconds before the current command times out. Default is 0.5 seconds.
+  --timeout TIMEOUT     The number seconds before the current command times out. Default is 1.0 seconds.
   --logging             Turn on logging in python-obd library. Default is off.
   --no_fast             When on, commands for every request will be unaltered with potentially long timeouts when
                         the car doesn't respond promptly or at all. When off (fast is on), commands are optimized
@@ -39,6 +39,12 @@ optional arguments:
   --verbose             Turn verbose output on. Default is off.
 PS C:\Users\human\src\telemetry-obd>
 ```
+
+### ```--timeout TIMEOUT```
+
+The timeout value determines how long a read request can take between the underlying ```python-OBD``` library and the OBD reader device.  If one or more individual commands are causing problems by intermittently responding with ```"no response"``` instead of a real value, an increase in the ```timeout``` value may help alleviate the problem.
+
+```--no_fast``` can also be used to reduce the number of ```"no response"```s but be aware of the consequences.  For commands that are not available on the vehicle being instrumented, the software may just wait forever for a response that will never come.
 
 ### Telemetry OBD Logger Run Cycles
 
