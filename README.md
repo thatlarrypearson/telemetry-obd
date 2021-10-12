@@ -221,6 +221,33 @@ DEBUG:obd.elm327:read: b'OK\r\r>'
 [obd.elm327] write: b'ATL0\r'
 ```
 
+## Testing All Available OBD Commands To See Which Ones Work On Your Vehicle
+
+Telemetry OBD Command Tester can be used to determine which set of OBD commands are supported by a given vehicle.
+
+```bash
+$ python3.8 -m telemetry_obd.obd_command_tester --help
+usage: obd_command_tester.py [-h] [--base_path BASE_PATH] [--cycles CYCLES] [--timeout TIMEOUT] [--logging] [--no_fast] [--verbose]
+
+Telemetry OBD Command Tester
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --base_path BASE_PATH
+                        Relative or absolute output data directory. Defaults to 'data'.
+  --cycles CYCLES       The number of cycles before ending. A cycle consists of all known OBD commands. Default is 10.
+  --timeout TIMEOUT     The number seconds before a command times out. Default is 0.5 seconds.
+  --logging             Turn on logging in python-obd library. Default is off.
+  --no_fast             When on, commands for every request will be unaltered with potentially long timeouts when the car doesn't respond promptly or at
+                        all. When off (fast is on), commands are optimized before being sent to the car. A timeout is added at the end of the command.
+                        Default is off so fast is on.
+  --verbose             Turn verbose output on. Default is off.
+```
+
+The output file format is the same as ```telemetry_obd.obd_logger``` as are many of the command line arguments.  ```--cycles``` determines the number of times the full list of known OBD commands is tried.  The OBD command list needs to be run a number of times because vehicles don't alway respond to requests in a timely manner.
+
+Test output files are named differently than ```obd_logger``` data files.   Both test and ```obd_logger``` data files will be placed in the ```{BASE_PATH}/{VIN}``` directory.  For example, using ```data``` (default) as the base path, if the vehicle VIN is ```FT8W4DT5HED00000```, then test files will be of the form ```data/FT8W4DT5HED00000/FT8W4DT5HED00000-TEST-20211012141917-utc.json```.  The ```obd_logger``` files will be of the form ```data/FT8W4DT5HED00000/FT8W4DT5HED00000-20211012141917-utc.json```.
+
 ## Configuration File Validation
 
 The Python program ```configuration_file_validation.py``` identifies good commands.  The generated list of good commands can be used to create a vehicle specific configuration file.

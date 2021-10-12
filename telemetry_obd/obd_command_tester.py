@@ -1,8 +1,14 @@
-"""telemetry_obd/obd_logger.py: Onboard Diagnostic Data Logger."""
+# OBD Command Tester
+# telemetry-obd/telemetry_obd/obd_command_tester.py
+"""
+Tests every known OBD command against an OBD interface.
+"""
 
+from obd.commands import __mode1__,  __mode9__
 from time import sleep
 from datetime import datetime, timezone
 from pathlib import Path
+# from pint import UnitRegistry
 from argparse import ArgumentParser
 import sys
 import json
@@ -13,44 +19,38 @@ from .obd_common_functions import (
     get_vin_from_vehicle,
     get_elm_info,
     get_config_path,
-    CommandNameGenerator,
     get_directory,
     get_output_file_name
 )
+from .add_commands import NEW_COMMANDS
 
 CONNECTION_WAIT_DELAY = 15.0
-FULL_CYCLES_COUNT = 50
+CYCLE_COUNT = 40
 TIMEOUT=0.5
 
 logger = logging.getLogger(__name__)
 
+def get_command_list() -> list:
+    """
+    Return list of all available OBD commands.
+    """
+    return [cmd.name for cmd in __mode1__ + __mode9__ + NEW_COMMANDS]
+
 def argument_parsing()-> dict:
     """Argument parsing"""
-    parser = ArgumentParser(description="Telemetry OBD Logger")
+    parser = ArgumentParser(description="Telemetry OBD Command Tester")
     parser.add_argument(
-        "base_path",
-        nargs='?',
-        metavar="base_path",
-        default=["data", ],
+        "--base_path",
+        default="data",
         help="Relative or absolute output data directory. Defaults to 'data'."
     )
     parser.add_argument(
-        "--config_file",
-        help="Settings file name. Defaults to '<vehicle-VIN>.ini' or 'default.ini'.",
-        default=None
-    )
-    parser.add_argument(
-        "--config_dir",
-        help="Settings directory path. Defaults to './config'.",
-        default='./config'
-    )
-    parser.add_argument(
-        '--full_cycles',
+        '--cycles',
         type=int,
-        default=FULL_CYCLES_COUNT,
+        default=CYCLE_COUNT,
         help=(
-            "The number of full cycles before a new output file is started." +
-            f"  Default is {FULL_CYCLES_COUNT}."
+            "The number of cycles before ending.  A cycle consists of all known OBD commands." +
+            f"  Default is {CYCLE_COUNT}."
         )
     )
     parser.add_argument(
@@ -58,7 +58,7 @@ def argument_parsing()-> dict:
         type=float,
         default=TIMEOUT,
         help=(
-            "The number seconds before the current command times out." +
+            "The number seconds before a command times out." +
             f"  Default is {TIMEOUT} seconds."
         )
     )
@@ -73,7 +73,7 @@ def argument_parsing()-> dict:
         help="When on, commands for every request will be unaltered with potentially long timeouts " +
         "when the car doesn't respond promptly or at all. " +
         "When off (fast is on), commands are optimized before being sent to the car. A timeout is " + 
-        "added at the end of the command.  Default is off. ",
+        "added at the end of the command.  Default is off so fast is on. ",
         default=False,
         action='store_true'
     )
@@ -96,6 +96,7 @@ def main():
 
     fast = not args['no_fast']
     timeout = args['timeout']
+    verbose = args['verbose']
 
     # OBD(portstr=None, baudrate=None, protocol=None, fast=True, timeout=0.1, check_voltage=True)
     connection = obd.OBD(fast=fast, timeout=timeout)
@@ -106,7 +107,7 @@ def main():
         if args['verbose']:
             print(f"Waiting for OBD Connection: {connection.status()}")
         sleep(CONNECTION_WAIT_DELAY)
-        connection = obd.OBD()
+        connection = obd.OBD(fast=fast, timeout=timeout)
 
     elm_version, elm_voltage = get_elm_info(connection)
     print("ELM VERSION", elm_version, "ELM VOLTAGE", elm_voltage)
@@ -116,24 +117,17 @@ def main():
     vin = get_vin_from_vehicle(connection)
     print(f"VIN: {vin}")
 
-    config_file = args['config_file']
-    config_dir = args['config_dir']
-    base_path = ''.join(args['base_path'])
-    
-    if not config_file:
-        config_path = get_config_path(config_dir, vin)
-    else:
-        config_path = Path(config_dir) / Path(config_file)
+    base_path = args['base_path']
 
-    command_name_generator = CommandNameGenerator(config_path)
-
-    while command_name_generator:
-        with open(
-            (get_directory(base_path, vin)) / (get_output_file_name(vin)),
-            mode='w',
-            encoding='utf-8'
-        ) as out_file:
-            for command_name in command_name_generator:
+    with open(
+        (get_directory(base_path, vin)) / (get_output_file_name(vin + '-TEST')),
+        mode='w',
+        encoding='utf-8'
+    ) as out_file:
+        for cycle in range(CYCLE_COUNT):
+            if verbose:
+                print(f"cycle {cycle}")
+            for command_name in get_command_list():
                 iso_format_pre = datetime.isoformat(
                     datetime.now(tz=timezone.utc)
                 )
@@ -157,11 +151,11 @@ def main():
                 )
 
                 if obd_response.is_null():
-                    obd_response_value = "not supported"
+                    obd_response_value = "no response"
                 else:
                     obd_response_value = obd_response.value
 
-                if args['verbose']:
+                if verbose:
                     print(
                         command_name,
                         obd_response_value,
@@ -170,10 +164,7 @@ def main():
                     )
 
                 if isinstance(obd_response_value, bytearray):
-                    if command_name == "VIN":
-                        obd_response_value = obd_response_value.decode("utf-8")
-                    else:
-                        obd_response_value = obd_response_value.hex()
+                    obd_response_value = obd_response_value.decode("utf-8")
 
                 out_file.write(json.dumps({
                             'command_name': command_name,
@@ -183,13 +174,8 @@ def main():
                         }) + "\n"
                 )
 
-                if (
-                    command_name_generator.full_cycles_count >
-                    FULL_CYCLES_COUNT
-                ):
-                    command_name_generator.full_cycles_count = 0
-                    break
 
 
 if __name__ == "__main__":
     main()
+
