@@ -85,81 +85,22 @@ Configuration files are used to tell OBD Logger what OBD commands to send the ve
 
 #### Default Configuration File
 
-A default configuration file is included in the repository at ```config/default.ini```.  This configuration file contains every known possible OBD command.  Wide variations in supported command sets by manufacturer, model, trim level and year exist.  By starting out with this configuration file, OBD Logger will try all commands.  After a full cycle is run, unsupported commands will respond with ```"obd_response_value": "not supported"``` in the output data.  The Python program ```configuration_file_validation.py``` identifies good commands.  The generated list of good commands can be used to create a vehicle specific configuration file.
+A default configuration file is included in the repository at ```config/default.ini```.  This configuration file contains most OBD commands.  There are wide variations in supported command sets by manufacturer, model, trim level and year.  By starting out with this configuration file, OBD Logger will try all commands.  After a full cycle is run, unsupported commands will respond with ```"obd_response_value": "no response"``` in the output data.  
 
-Some commands will result in an OBD response value of ```"not supported"``` (```"obd_response_value": "not supported"```) when the vehicle is unable to satisfy the OBD data request quickly enough.  You can identify this problem by searching for all responses for a particular command and seeing if sometimes the command responds with ```"not supported"``` or with a value.
+Some commands will result in an OBD response value of ```"no response"``` (```"obd_response_value": "no response"```) when the vehicle is unable to satisfy the OBD data request quickly enough.  You can identify this problem by searching for all responses for a particular command and seeing if sometimes the command responds with ```"no response"``` or with a value.
 
-For example, 2017 Ford F-450 truck ```FUEL_RATE``` command in the ```cycle``` section of the configuration file returned mixed results.  In 1,124 attempts, 1084 responded with a good value while 40 responded with ```not supported```.
+For example, 2017 Ford F-450 truck ```FUEL_RATE``` command in the ```cycle``` section of the configuration file returned mixed results.  In 1,124 attempts, 1084 responded with a good value while 40 responded with ```no response```.
 
 ```bash
-human@computer:data/FT8W4DT5HED00000$ grep FUEL_RATE FT8W4DT5HED00000-20210910204443-utc.json | grep "not supported" | wc -l
+human@computer:data/FT8W4DT5HED00000$ grep FUEL_RATE FT8W4DT5HED00000-20210910204443-utc.json | grep "no response" | wc -l
 40
-human@computer:data/FT8W4DT5HED00000$ grep FUEL_RATE FT8W4DT5HED00000-20210910204443-utc.json | grep -v "not supported" | wc -l
+human@computer:data/FT8W4DT5HED00000$ grep FUEL_RATE FT8W4DT5HED00000-20210910204443-utc.json | grep -v "no response" | wc -l
 1084
 ```
 
 This problem can be solved by increasing the OBD command timeout from its default to a higher value.  Use the ```--timeout``` setting when invoking the ```obd_logger``` command.
 
-#### Sample Configuration File For 2013 Jeep Wrangler Rubicon
 
-The Python program ```configuration_file_validation.py``` was used to identify good commands after data was collected using ```default.ini```.  The list of known good commands were then used to create this vehicle specific configuration file.
-
-```text
-[STARTUP NAMES]
-startup =
-  AMBIANT_AIR_TEMP
-  BAROMETRIC_PRESSURE
-  CONTROL_MODULE_VOLTAGE
-  COOLANT_TEMP
-  DISTANCE_SINCE_DTC_CLEAR
-  ECU_NAME
-  ECU_NAME_MESSAGE_COUNT
-  ELM_VERSION
-  ELM_VOLTAGE
-  FUEL_STATUS
-  GET_CURRENT_DTC
-  GET_DTC
-  INTAKE_TEMP
-  OBD_COMPLIANCE
-  VIN
-  WARMUPS_SINCE_DTC_CLEAR
-
-[HOUSEKEEPING NAMES]
-housekeeping =
-  AMBIANT_AIR_TEMP
-  BAROMETRIC_PRESSURE
-  CATALYST_TEMP_B1S1
-  CATALYST_TEMP_B2S1
-  CONTROL_MODULE_VOLTAGE
-  COOLANT_TEMP
-  DISTANCE_W_MIL
-  INTAKE_TEMP
-  RUN_TIME
-
-[CYCLE NAMES]
-cycle =
-  FUEL_LEVEL
-  ABSOLUTE_LOAD
-  ACCELERATOR_POS_D
-  ACCELERATOR_POS_E
-  COMMANDED_EQUIV_RATIO
-  ENGINE_LOAD
-  EVAPORATIVE_PURGE
-  EVAP_VAPOR_PRESSURE
-  INTAKE_PRESSURE
-  LONG_FUEL_TRIM_1
-  LONG_FUEL_TRIM_2
-  RELATIVE_THROTTLE_POS
-  RPM
-  SHORT_FUEL_TRIM_1
-  SHORT_FUEL_TRIM_2
-  SPEED
-  THROTTLE_ACTUATOR
-  THROTTLE_POS_B
-  THROTTLE_POS
-  TIMING_ADVANCE
-
-```
 
 ### Telemetry OBD Logger Output Data Files
 
@@ -170,7 +111,7 @@ Output data files are in a hybrid format.  Data files contain records separated 
 {"command_name": "BAROMETRIC_PRESSURE", "obd_response_value": "101 kilopascal", "iso_ts_pre": "2020-09-09T15:38:29.186497+00:00", "iso_ts_post": "2020-09-09T15:38:29.259106+00:00"}<CR>
 {"command_name": "CONTROL_MODULE_VOLTAGE", "obd_response_value": "0.0 volt", "iso_ts_pre": "2020-09-09T15:38:29.260143+00:00", "iso_ts_post": "2020-09-09T15:38:29.333047+00:00"}<CR>
 {"command_name": "VIN", "obd_response_value": "TEST_VIN_22_CHARS", "iso_ts_pre": "2020-09-09T15:38:30.029478+00:00", "iso_ts_post": "2020-09-09T15:38:30.061014+00:00"}
-{"command_name": "FUEL_STATUS", "obd_response_value": "not supported", "iso_ts_pre": "2020-09-09T15:38:29.771997+00:00", "iso_ts_post": "2020-09-09T15:38:29.824129+00:00"}
+{"command_name": "FUEL_STATUS", "obd_response_value": "no response", "iso_ts_pre": "2020-09-09T15:38:29.771997+00:00", "iso_ts_post": "2020-09-09T15:38:29.824129+00:00"}
 ```
 
 #### JSON Fields
@@ -179,7 +120,7 @@ Output data files are in a hybrid format.  Data files contain records separated 
   OBD command name submitted to vehicle.
 
 * ```obd_response_value```
-  OBD response value returned by the vehicle.  When the OBD command is not supported, the response is ```"not supported"```.  Response values are either a string like ```"not supported"``` and ```"TEST_VIN_22_CHARS"``` or they are a [Pint](https://pint.readthedocs.io/en/stable/) encoded value like ```"25 degC"``` and ```"101 kilopascal"```.
+  OBD response value returned by the vehicle.  When the OBD command gets no response, the response is ```"no response"```.  Response values are either a string like ```"no response"``` and ```"TEST_VIN_22_CHARS"``` or they are a [Pint](https://pint.readthedocs.io/en/stable/) encoded value like ```"25 degC"``` and ```"101 kilopascal"```.
 
 * ```iso_ts_pre```
   ISO formatted timestamp taken before the OBD command was issued to the vehicle (```datetime.isoformat(datetime.now(tz=timezone.utc))```).
@@ -254,33 +195,15 @@ The output file format is the same as ```telemetry_obd.obd_logger``` as are many
 
 Test output files are named differently than ```obd_logger``` data files.   Both test and ```obd_logger``` data files will be placed in the ```{BASE_PATH}/{VIN}``` directory.  For example, using ```data``` (default) as the base path, if the vehicle VIN is ```FT8W4DT5HED00000```, then test files will be of the form ```data/FT8W4DT5HED00000/FT8W4DT5HED00000-TEST-20211012141917-utc.json```.  The ```obd_logger``` files will be of the form ```data/FT8W4DT5HED00000/FT8W4DT5HED00000-20211012141917-utc.json```.
 
-## Configuration File Validation
+## Configuration File Creation and Validation
 
-The Python program ```configuration_file_validation.py``` identifies good commands.  The generated list of good commands can be used to create a vehicle specific configuration file.
+when a VIN (vehicle identification number) specific configuration file doesn't exist, the OBD Logger program defaults to using the ```"default.ini"``` configuration file.  This file, included in the software distribution under ```"config/default.ini"``` contains most known OBD commands.  Because of the wide variations in supported command sets by manufacturer, model, trim level and year made, it is difficult to know what OBD commands a specific car will respond to. Additionally, manufacturers don't typically publish lists of valid OBD commands for each vehicle sold.  This "try-them-all" method seems to be the only approach to identifying which OBD commands a specific vehicle will respond to.
 
-```bash
-PS C:\Users\human\src\telemetry-obd> python3.8 -m telemetry_obd.configuration_file_validation --help
-usage: configuration_file_validation.py [-h] [--config_file CONFIG_FILE] [--config_dir CONFIG_DIR] [--data_file DATA_FILE] [--verbose]
+The preferred way to "try-them-all", that is try every known OBD command is to use the ```telemetry_obd.obd_command_tester``` program. Once all the possible known OBD commands have been tried, it becomes possible to create a list of valid known commands to be used in the creation of a vehicle specific configuration file.  The OBD Logger software was written to automatically choose configuration files appropriately named ```"<VIN>.ini"``` by default.  If the ```"<VIN>.ini"``` isn't available, then the other default, ```"default.ini"```, is chosen by default.
 
-Telemetry: Settings file validation tool.
+Analysis of ```telemetry_obd.obd_command_tester``` and ```telemetry_obd.obd_logger``` output is done by ```telemetry_obd_log_to_csv.obd_log_evaluation``` found in the [Telemetry OBD Data To CSV File](https://github.com/thatlarrypearson/telemetry-obd-log-to-csv) repository.
 
-optional arguments:
-  -h, --help            show this help message and exit
-  --config_file CONFIG_FILE
-                        Settings file name. Defaults to <vehicle-VIN>.ini or 'default.ini'.
-  --config_dir CONFIG_DIR
-                        Settings directory path. Defaults to './config'.
-  --data_file DATA_FILE
-                        Data file base directory (e.g. where '<VIIN>/<VIN>-<YYYYMMDDhhmmss>-utc.json' get placed).
-  --verbose             Turn verbose output on. Default is off.
-PS C:\Users\human\src\telemetry-obd>
-```
-
-The OBD Logger program defaults to using the ```"default.ini"``` configuration file.  This file, included in the software distribution under ```"config/default.ini"``` contains all the known OBD commands.  Because of the wide variations in supported command sets by manufacturer, model, trim level and year made, it is difficult to know what OBD commands a specific car will respond to. Additionally, manufacturers don't typically publish lists of valid OBD commands for each vehicle sold.  This "try-them-all" method seems to be the only approach to identifying which OBD commands a specific vehicle will respond to.
-
-Once all the possible known OBD commands have been tried, it becomes possible to create a list of valid known commands to be used in the creation of a vehicle specific configuration file.  The OBD Logger software was written to automatically choose configuration files appropriately named ```"<VIN>.ini"``` by default.  If the ```"<VIN>.ini"``` isn't available, then the other default, ```"default.ini"```, is chosen by default.
-
-When creating vehicle specific configuration files, the Configuration File Validation output section titled ```"<vin> Valued Commands"``` is particularly helpful.  The commands in this section provide a list of commands that generate valid vehicle responses.  Only valid OBD commands should be used long term when gathering vehicle data.
+When creating vehicle specific configuration files, use ```obd_log_evaluation``` to determine the list of commands providing valid vehicle responses.  Only valid OBD commands should be used long term when gathering vehicle data.
 
 ## Raspberry Pi System Installation
 
