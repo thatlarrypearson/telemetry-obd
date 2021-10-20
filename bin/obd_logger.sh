@@ -12,6 +12,9 @@ export APP_FULL_CYCLES=1000
 export APP_TEST_CYCLES=5
 export APP_PYTHON=python3.8
 
+export COMMAND_TESTER='yes'
+export COMMAND_TESTER_DELAY=60
+
 if [ ! -d "{APP_BASE_PATH}" ]
 then
 	mkdir --parents "${APP_BASE_PATH}"
@@ -21,10 +24,14 @@ cd "${APP_HOME}"
 
 sleep ${STARTUP_DELAY}
 
-# optional - run command test first
-${APP_PYTHON} -m telemetry_obd.obd_command_tester \
-	--cycle "${APP_TEST_CYCLES}" \
-	--base_path "${APP_BASE_PATH}"
+if [ "${COMMAND_TESTER}" = "yes" ]
+then
+	${APP_PYTHON} -m telemetry_obd.obd_command_tester \
+		--cycle "${APP_TEST_CYCLES}" \
+		--base_path "${APP_BASE_PATH}"
+
+	sleep "${COMMAND_TESTER_DELAY}"
+fi
 
 ${APP_PYTHON} -m telemetry_obd.obd_logger \
 	--config_file "${APP_CONFIG_FILE}" \

@@ -17,12 +17,17 @@ if [ "$_IP" ]; then
   printf "My IP address is %s\n" "$_IP"
 fi
 
+# BEGIN TELEMETRY-OBD SUPPORT
+#
 # Bind the paired OBDII device to /dev/rfcomm0
-rfcomm bind rfcomm0 00:19:5D:26:4B:5F
-
+export OBD_ADAPTER_MAC_ADDRESS="00:19:5D:26:4B:5F"
+rfcomm bind rfcomm0 "${OBD_ADAPTER_MAC_ADDRESS}"
+#
 # Run the script RaspberryPi-Auto-Run.sh as user "${OBD_USER}" and group "dialout"
 export OBD_USER=human
-export OBD_HOME="/home/${OBD_USER}/"
-runuser -u "${OBD_USER}" -g dialout "${OBD_HOME}/src/telemetry-obd/bin/RaspberryPi-Auto-Run.sh" > /tmp/obd-log.$$ 2>&1
+export OBD_HOME="/home/${OBD_USER}"
+runuser -u "${OBD_USER}" -g dialout "${OBD_HOME}/telemetry-obd/bin/obd_logger.sh" > /tmp/obd-log.$$ 2>&1
+#
+# END TELEMETRY-OBD SUPPORT
 
 exit 0

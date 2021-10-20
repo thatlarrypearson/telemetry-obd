@@ -40,13 +40,15 @@ optional arguments:
 PS C:\Users\human\src\telemetry-obd>
 ```
 
-### ```--timeout TIMEOUT```
+#### ```--timeout TIMEOUT```
 
 The timeout value determines how long a read request can take between the underlying ```python-OBD``` library and the OBD reader device.  If one or more individual commands are causing problems by intermittently responding with ```"no response"``` instead of a real value, an increase in the ```timeout``` value may help alleviate the problem.
 
+#### `--no_fast```
+
 ```--no_fast``` can also be used to reduce the number of ```"no response"```s but be aware of the consequences.  For commands that are not available on the vehicle being instrumented, the software may just wait forever for a response that will never come.
 
-### Telemetry OBD Logger Run Cycles
+#### Telemetry OBD Logger Run Cycles
 
 While logging, OBD Logger submits a pattern of OBD commands to the vehicle and stores the vehicle's responses.  There are three patterns:
 
@@ -56,22 +58,22 @@ While logging, OBD Logger submits a pattern of OBD commands to the vehicle and s
 
 ![Run Cycles](docs/README-RunCycles.JPG)
 
-#### Startup
+##### Startup
 
 The startup list of OBD commands is only executed when the program starts up.  Typically, this list of OBD commands includes:
 
 * OBD commands whose return values never change (e.g. ```ECU_NAME```, ```ELM_VERSION```, ```ELM_VOLTAGE```)
 * OBD commands with slow changing return values that might be needed for startup baseline like ```AMBIANT_AIR_TEMP``` and ```BAROMETRIC_PRESSURE```.
 
-#### Housekeeping
+##### Housekeeping
 
 A list of OBD commands that have ("relatively") "slow changing" return values such as  ```AMBIANT_AIR_TEMP``` and ```BAROMETRIC_PRESSURE```.  These are commands that need to be run over and over again but in a slower loop.
 
-#### Cycle
+##### Cycle
 
 A list of OBD commands that have fast changing return values such as ```RPM```, ```MAF``` (Mass Air Flow) and ```PERCENT_TORQUE```.  The idea is for these commands to run over and over again in relatively fast loops.
 
-#### Full Cycle
+##### Full Cycle
 
 The repeating part of the OBD command pattern is called a "full cycle" and has OBD commands from Cycle executed in a group followed by the next Housekeeping command.  This basic pattern repeats over and over.  When the end of the Housekeeping commands is reached, a "Full Cycle" has been achieved.
 
@@ -79,11 +81,11 @@ The total number of command submissions in a full cycle is the ```count of comma
 
 The ```--full_cycles``` parameter is used to set the number of ```full_cycles``` contained in output data files.  Once the ```--full_cycles``` limit is reached, the data file is closed and a new one is opened.  This keeps data loss from unplanned Raspberry Pi shutdowns to a minimum.
 
-### Telemetry OBD Logger Configuration Files
+#### Telemetry OBD Logger Configuration Files
 
 Configuration files are used to tell OBD Logger what OBD commands to send the vehicle and the order to send those commands in.  A sample configuration file is shown below and another one is included in the source code.
 
-#### Default Configuration File
+##### Default Configuration File
 
 A default configuration file is included in the repository at ```config/default.ini```.  This configuration file contains most OBD commands.  There are wide variations in supported command sets by manufacturer, model, trim level and year.  By starting out with this configuration file, OBD Logger will try all commands.  After a full cycle is run, unsupported commands will respond with ```"obd_response_value": "no response"``` in the output data.  
 
@@ -98,9 +100,7 @@ human@computer:data/FT8W4DT5HED00000$ grep FUEL_RATE FT8W4DT5HED00000-2021091020
 1084
 ```
 
-This problem can be solved by increasing the OBD command timeout from its default to a higher value.  Use the ```--timeout``` setting when invoking the ```obd_logger``` command.
-
-
+This problem may be solved by increasing the OBD command timeout from its default to a higher value.  Use the ```--timeout``` setting when invoking the ```obd_logger``` command.
 
 ### Telemetry OBD Logger Output Data Files
 
@@ -170,7 +170,7 @@ DEBUG:obd.elm327:read: b'OK\r\r>'
 
 ## Testing All Available OBD Commands To See Which Ones Work On Your Vehicle
 
-Telemetry OBD Command Tester can be used to determine which set of OBD commands are supported by a given vehicle.
+```Telemetry OBD Command Tester``` can be used to determine which set of OBD commands are supported by a given vehicle.
 
 ```bash
 $ python3.8 -m telemetry_obd.obd_command_tester --help
@@ -185,9 +185,9 @@ optional arguments:
   --cycles CYCLES       The number of cycles before ending. A cycle consists of all known OBD commands. Default is 10.
   --timeout TIMEOUT     The number seconds before a command times out. Default is 0.5 seconds.
   --logging             Turn on logging in python-obd library. Default is off.
-  --no_fast             When on, commands for every request will be unaltered with potentially long timeouts when the car doesn't respond promptly or at
-                        all. When off (fast is on), commands are optimized before being sent to the car. A timeout is added at the end of the command.
-                        Default is off so fast is on.
+  --no_fast             When on, commands for every request will be unaltered with potentially long timeouts when the car
+                        doesn't respond promptly or at all. When off (fast is on), commands are optimized before being
+                        sent to the car. A timeout is added at the end of the command. Default is off so fast is on.
   --verbose             Turn verbose output on. Default is off.
 ```
 
@@ -199,7 +199,7 @@ Test output files are named differently than ```obd_logger``` data files.   Both
 
 when a VIN (vehicle identification number) specific configuration file doesn't exist, the OBD Logger program defaults to using the ```"default.ini"``` configuration file.  This file, included in the software distribution under ```"config/default.ini"``` contains most known OBD commands.  Because of the wide variations in supported command sets by manufacturer, model, trim level and year made, it is difficult to know what OBD commands a specific car will respond to. Additionally, manufacturers don't typically publish lists of valid OBD commands for each vehicle sold.  This "try-them-all" method seems to be the only approach to identifying which OBD commands a specific vehicle will respond to.
 
-The preferred way to "try-them-all", that is try every known OBD command is to use the ```telemetry_obd.obd_command_tester``` program. Once all the possible known OBD commands have been tried, it becomes possible to create a list of valid known commands to be used in the creation of a vehicle specific configuration file.  The OBD Logger software was written to automatically choose configuration files appropriately named ```"<VIN>.ini"``` by default.  If the ```"<VIN>.ini"``` isn't available, then the other default, ```"default.ini"```, is chosen by default.
+The preferred way to *"try-them-all"*, that is try every known OBD command is to use the ```telemetry_obd.obd_command_tester``` program. Once all the possible known OBD commands have been tried, it becomes possible to create a list of valid known commands to be used in the creation of a vehicle specific configuration file.  The OBD Logger software was written to automatically choose configuration files appropriately named ```"<VIN>.ini"``` by default.  If the ```"<VIN>.ini"``` isn't available, then the other default, ```"default.ini"```, is chosen by default.
 
 Analysis of ```telemetry_obd.obd_command_tester``` and ```telemetry_obd.obd_logger``` output is done by ```telemetry_obd_log_to_csv.obd_log_evaluation``` found in the [Telemetry OBD Data To CSV File](https://github.com/thatlarrypearson/telemetry-obd-log-to-csv) repository.
 
@@ -267,12 +267,16 @@ Once you are comfortable with the Python version on your system, run the followi
 # Python pip Install Support
 python3.8 -m pip install --upgrade --user pip
 python3.8 -m pip install --upgrade --user wheel setuptools markdown
-
-# Python Code support
-python3.8 -m pip install --upgrade --user pint
 ```
 
-To get VIN number retrieval, must get the most recent ```python-OBD``` source code from ```github```.
+The Python  ```pint``` package will be downgraded during the ```python-OBD``` installation.
+
+```bash
+# Python Code support
+python3.8 -m pip install --user pint
+```
+
+Currently, the ```python-OBD``` package reinstalls an older version (```'0.7.2'```) of ```pint```.
 
 ```bash
 # get latest python-OBD from github repository
@@ -298,6 +302,11 @@ On Windows 10, connecting to USB or Bluetooth ELM 327 OBD interfaces is simple. 
 
 On Linux/Raspberry Pi based systems, USB ELM 327 based OBD interfaces present as ```tty``` devices (e.g. ```/dev/ttyUSB0```).  If software reports that the OBD interface can't be accessed, the problem may be one of permissions.  Typically, ```tty``` devices are owned by ```root``` and group is set to ```dialout```.  The user that is running the OBD data capture program must be a member of the same group (e.g. ```dialout```) as the ```tty``` device.
 
+```bash
+# add current user to group dialout
+adduser $(whoami) dialout
+```
+
 On Linux/Raspberry Pi, Bluetooth serial device creation is not automatic.  After Bluetooth ELM 327 OBD interface has been paired, ```sudo rfcomm bind rfcomm0 <BT-MAC-ADDRESS>``` will create the required serial device.   An example follows:
 
 ```bash
@@ -311,6 +320,10 @@ Device 00:00:00:33:33:33 OBDII
 # bind the Bluetooth ELM 327 OBD interface to a serial port/device using the interfaces Bluetooth MAC (Media Access Control) address:
 sudo rfcomm bind rfcomm0 00:00:00:33:33:33
 ```
+
+Realize that before the above can work, the Bluetooth device must have already been paired with the Raspberry Pi.  One easy way to pair is to use the Pi's GUI to access the Bluetooth.  Look for the Bluetooth emblem on the top panel above the cursor.
+
+![RaspberryPi Bluetooth GUI Utility](docs/README-rpi-gui-bt.png)
 
 On Linux/Raspberry Pi systems, the ```rfcomm``` command creates the device ```/dev/rfcomm0``` as a serial device owned by  ```root``` and group ```dialout```.  If multiple Bluetooth serial devices are paired and bound to ```/dev/rfcomm0```, ```/dev/rfcomm1```, ```/dev/rfcomm2``` and so on, OBD Logger will only automatically connect to the first device.  The code can be modified to resolve this limitation.
 
@@ -332,12 +345,12 @@ In order to reliably run in an automotive environment, the OBD Logger applicatio
 
 On the Raspberry Pi, commands embedded in "```/etc/rc.local```" will be run at the end of the system startup sequence by the ```root``` user.  A sample "```/etc/rc.local```" follows:
 
-```text
+```bash
 #!/bin/sh -e
 #
 # rc.local
 #
-# This script is executed at the end of each multi-user run-level.
+# This script is executed at the end of each multiuser runlevel.
 # Make sure that the script will "exit 0" on success or any other
 # value on error.
 #
@@ -352,73 +365,65 @@ if [ "$_IP" ]; then
   printf "My IP address is %s\n" "$_IP"
 fi
 
+# BEGIN TELEMETRY-OBD SUPPORT
+#
 # Bind the paired OBDII device to /dev/rfcomm0
-rfcomm bind rfcomm0 00:19:5D:26:4B:5F
-
+export OBD_ADAPTER_MAC_ADDRESS="00:19:5D:26:4B:5F"
+rfcomm bind rfcomm0 "${OBD_ADAPTER_MAC_ADDRESS}"
+#
 # Run the script RaspberryPi-Auto-Run.sh as user "${OBD_USER}" and group "dialout"
 export OBD_USER=human
-export OBD_HOME="/home/${OBD_USER}/"
-runuser -u "${OBD_USER}" -g dialout "${OBD_HOME}/src/telemetry-obd/bin/RaspberryPi-Auto-Run.sh" > /tmp/obd-log.$$ 2>&1
+export OBD_HOME="/home/${OBD_USER}"
+runuser -u "${OBD_USER}" -g dialout "${OBD_HOME}/telemetry-obd/bin/obd_logger.sh" > /tmp/obd-log.$$ 2>&1
+#
+# END TELEMETRY-OBD SUPPORT
 
 exit 0
 ```
 
-The ```runuser``` command in "```/etc/rc.local```" file runs the "```RaspberryPi-Auto-Run.sh```" ```bash``` shell program as user "```human```" and group "```dialout```".  The shell program is as follows:
+The ```runuser``` command in "```/etc/rc.local```" file runs the "```obd_logger.sh```" ```bash``` shell program as user "```human```" and group "```dialout```".  The ```obd_logger.sh``` shell program is as follows:
 
 ```bash
-#!/bin/bash
-# RaspberryPi-Auto-Run.sh
+# obd_logger.sh
 #
-# To get this script to run automatically after booting, place the following in /etc/rc.local
-#
-# # Bind the paired OBDII device to /dev/rfcomm0
-# rfcomm bind rfcomm0 00:19:5D:26:4B:5F
-#
-# # Run the script RaspberryPi-Auto-Run.sh as user "${OBD_USER}" and group "dialout"
-# export OBD_USER=human
-# export OBD_HOME="/home/${OBD_USER}/"
-# runuser -u "${OBD_USER}" -g dialout "${OBD_HOME}/src/telemetry-obd/bin/RaspberryPi-Auto-Run.sh" > /tmp/obd-log.$$ 2>&1
+# Runs OBD Logger
 
-# Need to debug this script?  Uncomment the following line.
-# set -x
+# Need time for the system to startup the Bluetooth connection
+export STARTUP_DELAY=10
 
-export HOME="/home/$(whoami)"
-export FULL_CYCLES="30"
-export RUN_DIRECTORY="${HOME}/src/telemetry-obd"
-export CONFIG_DIR="${HOME}/src/telemetry-obd/config"
-export BASE_PATH="${HOME}/src/telemetry-obd/data"
-export LOG_DIR="${HOME}/src/telemetry-obd/tmp"
-export LOG_FILE="$(date '+%Y%m%d%H%M%S%z').log"
+export APP_HOME="/home/$(whoami)/telemetry-obd"
+export APP_CONFIG_DIR="${APP_HOME}/config"
+export APP_BASE_PATH="${APP_HOME}/data"
+export APP_FULL_CYCLES=1000
+export APP_TEST_CYCLES=5
+export APP_PYTHON=python3.8
 
-. ${HOME}/.profile
+export COMMAND_TESTER='yes'
+export COMMAND_TESTER_DELAY=60
 
-cd "${RUN_DIRECTORY}"
-
-if [ ! -d "${BASE_PATH}" ]
+if [ ! -d "{APP_BASE_PATH}" ]
 then
-	mkdir --parents "${BASE_PATH}"
+	mkdir --parents "${APP_BASE_PATH}"
 fi
 
-if [ ! -d "${CONFIG_DIR}" ]
+cd "${APP_HOME}"
+
+sleep ${STARTUP_DELAY}
+
+if "${COMMAND_TESTER}" == 'yes'
 then
-	mkdir --parents "${CONFIG_DIR}"
+	${APP_PYTHON} -m telemetry_obd.obd_command_tester \
+		--cycle "${APP_TEST_CYCLES}" \
+		--base_path "${APP_BASE_PATH}"
+
+	sleep "${COMMAND_TESTER_DELAY}"
 fi
 
-if [ ! -d "${LOG_DIR}" ]
-then
-	mkdir --parents "${LOG_DIR}"
-fi
-
-# the following flags can be used for debugging purposes.
-#		--logging \
-#		--verbose \
-#		--full_cycles="${FULL_CYCLES}" \
-#		--config_file=default.ini \
-
-python3.8 -m telemetry_obd.obd_logger \
-		--config_dir="${CONFIG_DIR}" \
-		"${BASE_PATH}" \
-		< /dev/null >&1 > "${LOG_DIR}/${LOG_FILE}" 2>&1 &
+${APP_PYTHON} -m telemetry_obd.obd_logger \
+	--config_file "${APP_CONFIG_FILE}" \
+	--config_dir "${APP_CONFIG_DIR}" \
+	--full_cycles "${APP_FULL_CYCLES}" \
+	"${APP_BASE_PATH}"
 ```
 
 ## Running Raspberry Pi In Vehicle

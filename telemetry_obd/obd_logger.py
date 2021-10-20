@@ -96,6 +96,7 @@ def main():
 
     fast = not args['no_fast']
     timeout = args['timeout']
+    verbose = args['verbose']
 
     # OBD(portstr=None, baudrate=None, protocol=None, fast=True, timeout=0.1, check_voltage=True)
     connection = obd.OBD(fast=fast, timeout=timeout)
@@ -103,7 +104,7 @@ def main():
         if connection.status() == obd.OBDStatus.NOT_CONNECTED:
             print("ELM Adapter Not Found, Ending")
             exit(1)
-        if args['verbose']:
+        if verbose:
             print(f"Waiting for OBD Connection: {connection.status()}")
         sleep(CONNECTION_WAIT_DELAY)
         connection = obd.OBD()
@@ -149,7 +150,8 @@ def main():
                         force=True
                     )
                 else:
-                    print(f"\nmissing command: <{command_name}>\n")
+                    if verbose:
+                        print(f"\nmissing command: <{command_name}>\n")
                     continue
 
                 iso_format_post = datetime.isoformat(
@@ -161,7 +163,7 @@ def main():
                 else:
                     obd_response_value = obd_response.value
 
-                if args['verbose']:
+                if verbose:
                     print(
                         command_name,
                         obd_response_value,
