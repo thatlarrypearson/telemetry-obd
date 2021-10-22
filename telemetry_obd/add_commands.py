@@ -53,7 +53,10 @@ def engine_temperature(messages):
 def fuel_rate_2(messages):
     d = messages[0].data[2:]
 
-    sensor_a = (((256.0 * d[0]) + d[1]) / 50.0) * ureg.gram / ureg.second if d[0] & 1 else None
+    engine_fuel_rate = (((256.0 * d[0]) + d[1]) / 50.0) * ureg.gram / ureg.second if d[0] & 1 else None
+    vehicle_fuel_rate = (((256.0 * d[2]) + d[3]) / 50.0) * ureg.gram / ureg.second if d[0] & 1 else None
+
+    return [engine_fuel_rate, vehicle_fuel_rate, ]
 
 def exhaust_flow_rate(messages):
     d = messages[0].data[2:]
@@ -137,7 +140,7 @@ NEW_COMMANDS = [
     # OBDCommand("PID_E", "PIDs supported [81 - A0]", b"0180", 6, pid, ECU.ENGINE, True),
     OBDCommand("THROTTLE_POSITION_G", "Throttle position G", b"018D", 1, percent, ECU.ENGINE, True),
     OBDCommand("ENGINE_FRICTION_PERCENT_TORQUE", "Engine friction percent torque", b"018E", 3, torque_percent, ECU.ENGINE, True),
-    OBDCommand("FUEL_RATE2", "Engine fuel rate", b"019D", 4, fuel_rate_2, ECU.ENGINE, True),
+    OBDCommand("FUEL_RATE_2", "Fuel rate 2", b"019D", 4, fuel_rate_2, ECU.ENGINE, True),
     OBDCommand("ENGINE_EXHAUST_FLOW_RATE", "Engine exhaust flow rate", b"019E", 2, exhaust_flow_rate, ECU.ENGINE, True),
 
     # OBDCommand("PID_F", "PIDs supported [A1 - C0]", b"01A0", 6, pid, ECU.ENGINE, True),
