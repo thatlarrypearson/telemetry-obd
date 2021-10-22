@@ -276,17 +276,20 @@ The Python  ```pint``` package will be downgraded during the ```python-OBD``` in
 python3.8 -m pip install --user pint
 ```
 
-Currently, the ```python-OBD``` package reinstalls an older version (```'0.7.2'```) of ```pint```.
+Currently, the ```python-OBD``` package reinstalls an older version (```'0.7.2'```) of ```pint```.  You can install ```python-OBD```
+from source or through ```pip```.  Installing through ```pip``` seems like the better choice as it makes the versioning work correctly.
 
 ```bash
-# get latest python-OBD from github repository
+python3.8 -m pip install --user obd
+```
+
+```bash
+# Install python-OBD from source (github repository)
 git clone https://github.com/brendan-w/python-OBD.git
 cd python-OBD
 python3.8 setup.py sdist
 python3.8 -m pip install --user .
 ```
-
-For Apple Mac and Windows 10 installations, see [installation on Read The Docs](https://python-obd.readthedocs.io/en/latest/#installation).
 
 Install this software:
 
