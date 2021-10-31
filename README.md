@@ -424,7 +424,8 @@ export APP_FULL_CYCLES=1000
 export APP_TEST_CYCLES=5
 export APP_PYTHON=python3.8
 
-export COMMAND_TESTER='yes'
+# Run Command Tester one time if following file exists
+export COMMAND_TESTER="${APP_HOME}/RunCommandTester"
 export COMMAND_TESTER_DELAY=60
 
 if [ ! -d "{APP_BASE_PATH}" ]
@@ -436,12 +437,13 @@ cd "${APP_HOME}"
 
 sleep ${STARTUP_DELAY}
 
-if "${COMMAND_TESTER}" == 'yes'
+if [ -f "${COMMAND_TESTER}" ]
 then
 	${APP_PYTHON} -m telemetry_obd.obd_command_tester \
 		--cycle "${APP_TEST_CYCLES}" \
 		--base_path "${APP_BASE_PATH}"
 
+  rm -f "${COMMAND_TESTER}"
 	sleep "${COMMAND_TESTER_DELAY}"
 fi
 
