@@ -1,3 +1,41 @@
 [build-system]
-requires = ["setuptools >= 38.3.0", "wheel"]
+requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[metadata]
+name = "telemetry-obd"
+url = "https://github.com/thatlarrypearson/telemetry-obd"
+version = "0.2.1"
+description = "Telemetry OBD Data Logger"
+long_description = "file:README.md"
+authors = [
+    "Larry Pearson <no-reply@gmail.com>",
+]
+license = "MIT"
+readme = "README.md"
+python = "^3.7"
+homepage = "https://github.com/thatlarrypearson/telemetry-obd"
+repository = "https://github.com/thatlarrypearson/telemetry-obd"
+documentation = "https://github.com/thatlarrypearson/telemetry-obd"
+keywords = ["obd", "telematics", "vehicle"]
+dependencies = [
+  'pint = 0.7.2',
+  'rich = 10.12.0',
+]
+
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Natural Language :: English",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+
+

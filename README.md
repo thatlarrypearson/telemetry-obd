@@ -1,12 +1,12 @@
 # Telemetry OBD Logging
 
-The Telemetry OBD Logger captures vehicle performance data while the program is running.  A separate Configuration File Validation program assists in the creation of more efficient logging configuration files.
-
-![High Level System View](docs/README-HighLevelSystemView.JPG)
+The Telemetry OBD Logger captures vehicle performance data using an OBD interface device attached to the vehicle.  While the logger is running, it writes output to files.  Data from multiple vehicles can easily be logged.  Data from each different vehicle is stored in a directory/folder matching the vehicle's VIN or vehicle identification number.
 
 The software is designed to run on Raspberry Pi with Raspberry Pi OS (formerly known as Raspbian) installed.  Bluetooth capabilities are added to the Raspberry Pi through a USB Bluetooth adapter (BT Dongle) and installed software (Bluetooth Driver and tools).
 
-The OBD Logger and Configuration Validation software run in the Python3 (versions 3.6 or newer) environment.  Storage is utilized by the programs for storing output and configuration data.
+The OBD Logger software runs on Python versions 3.8 or newer.
+
+![High Level System View](docs/README-HighLevelSystemView.JPG)
 
 ## OBD Logger
 
@@ -44,7 +44,7 @@ PS C:\Users\human\src\telemetry-obd>
 
 The timeout value determines how long a read request can take between the underlying ```python-OBD``` library and the OBD reader device.  If one or more individual commands are causing problems by intermittently responding with ```"no response"``` instead of a real value, an increase in the ```timeout``` value may help alleviate the problem.
 
-#### `--no_fast```
+#### ```--no_fast```
 
 ```--no_fast``` can also be used to reduce the number of ```"no response"```s but be aware of the consequences.  For commands that are not available on the vehicle being instrumented, the software may just wait forever for a response that will never come.
 
@@ -195,11 +195,13 @@ The output file format is the same as ```telemetry_obd.obd_logger``` as are many
 
 Test output files are named differently than ```obd_logger``` data files.   Both test and ```obd_logger``` data files will be placed in the ```{BASE_PATH}/{VIN}``` directory.  For example, using ```data``` (default) as the base path, if the vehicle VIN is ```FT8W4DT5HED00000```, then test files will be of the form ```data/FT8W4DT5HED00000/FT8W4DT5HED00000-TEST-20211012141917-utc.json```.  The ```obd_logger``` files will be of the form ```data/FT8W4DT5HED00000/FT8W4DT5HED00000-20211012141917-utc.json```.
 
+*IMPORTANT!*   Vehicle identification numbers (VIN) starting with a digit are known to drop the digit when being recorded.  For example, a vehicle with a VIN of ```1FT8W4DT5HED00000``` is recorded as ```FT8W4DT5HED00000```.  Not to worry as the recorded VIN is still *VERY* *UNLIKELY* to overlap with another vehicle's VIN.
+
 ## Configuration File Creation and Validation
 
 when a VIN (vehicle identification number) specific configuration file doesn't exist, the OBD Logger program defaults to using the ```"default.ini"``` configuration file.  This file, included in the software distribution under ```"config/default.ini"``` contains most known OBD commands.  Because of the wide variations in supported command sets by manufacturer, model, trim level and year made, it is difficult to know what OBD commands a specific car will respond to. Additionally, manufacturers don't typically publish lists of valid OBD commands for each vehicle sold.  This "try-them-all" method seems to be the only approach to identifying which OBD commands a specific vehicle will respond to.
 
-The preferred way to *"try-them-all"*, that is try every known OBD command is to use the ```telemetry_obd.obd_command_tester``` program. Once all the possible known OBD commands have been tried, it becomes possible to create a list of valid known commands to be used in the creation of a vehicle specific configuration file.  The OBD Logger software was written to automatically choose configuration files appropriately named ```"<VIN>.ini"``` by default.  If the ```"<VIN>.ini"``` isn't available, then the other default, ```"default.ini"```, is chosen by default.
+The preferred way to *"try-them-all"*, that is try every known OBD command, is to use the ```telemetry_obd.obd_command_tester``` program. Once all the possible known OBD commands have been tried, it becomes possible to create a list of valid known commands to be used in the creation of a vehicle specific configuration file.  The OBD Logger software was written to automatically choose configuration files appropriately named ```"<VIN>.ini"``` by default.  If the ```"<VIN>.ini"``` isn't available, then the other default, ```"default.ini"```, is chosen.
 
 Analysis of ```telemetry_obd.obd_command_tester``` and ```telemetry_obd.obd_logger``` output is done by ```telemetry_obd_log_to_csv.obd_log_evaluation``` found in the [Telemetry OBD Data To CSV File](https://github.com/thatlarrypearson/telemetry-obd-log-to-csv) repository.
 
@@ -244,14 +246,11 @@ Because an OBD emulator was available, pairing the OBD interface to the Raspberr
 
 Pairing with the OBD interface plugged into a vehicle is considerably more challenging.  OBD interface extension cords are available.  Extension cords are useful because the lights on the OBD interface can be seen.  These lights are important while trying to pair.  Lights also blink when the Pi is communicating to the OBD interface.
 
-Validate that your Raspberry Pi has at least Python version 3.6 available:
+Validate that your Raspberry Pi has at least Python version 3.8 available:
 
 ```bash
 # Python 3 version
 human@hostname:~$ python3 --version
-Python 3.6.9
-# Python 3.6 version
-human@hostname:~$ python3.6 --version
 Python 3.6.9
 # Python 3.8 version
 human@hostname:~$ python3.8 --version
@@ -259,36 +258,60 @@ Python 3.8.5
 human@hostname:~$
 ```
 
-If you are comfortable with Linux, you may want to install and use Python 3.8, the version the software is being developed and tested with.
+If ```Python 3.8```, isn't already installed you will need to make it from source before installing it.
+
+Go to the [Python Downloads](https://www.python.org/downloads/source/) page.  Find the most recent version of Python 3.8 from the list.  Currently, the latest 3.8 release is at version 3.8.12.  The build instructions below assume python3.8.12.
+
+```bash
+# install build tools
+sudo apt-get update
+sudo apt-get upgrade -y
+sudo apt-get install -y build-essential checkinstall
+sudo apt-get install -y libreadline-gplv2-dev libncursesw5-dev libssl-dev
+sudo apt-get install -y libsqlite3-dev tk-dev libgdbm-dev libc6-dev libbz2-dev libffi-dev zlib1g-dev
+```
+
+```bash
+# the following makes and installs python3.8 into /usr/local/bin
+# with the libraries in /usr/local/lib.
+cd
+wget https://www.python.org/ftp/python/3.8.12/Python-3.8.12.tgz
+cd /opt
+sudo tar xzf ~/Python-3.8.12.tgz
+cd Python-3.8.12
+sudo ./configure --enable-optimizations
+sudo make altinstall
+sudo make clean
+cd /opt
+sudo rm -rf Python-3.8.12
+python3.8 --version
+Python 3.8.12
+```
 
 Once you are comfortable with the Python version on your system, run the following:
 
 ```bash
 # Python pip Install Support
 python3.8 -m pip install --upgrade --user pip
-python3.8 -m pip install --upgrade --user wheel setuptools markdown
+python3.8 -m pip install --upgrade --user wheel setuptools markdown build
 ```
 
-The Python  ```pint``` package will be downgraded during the ```python-OBD``` installation.
+The Python  ```pint``` package, if already installed, may be downgraded during the ```python-OBD``` installation.
+
+Currently, the ```python-OBD``` package may reinstall an older version (```'0.7.2'```) of ```pint```.  You can install ```python-OBD```
+from source (recommended) or through ```pip```.  Installing through ```pip``` can lead to fewer available OBD commands to chose from.
 
 ```bash
-# Python Code support
-python3.8 -m pip install --user pint
-```
-
-Currently, the ```python-OBD``` package reinstalls an older version (```'0.7.2'```) of ```pint```.  You can install ```python-OBD```
-from source or through ```pip```.  Installing through ```pip``` seems like the better choice as it makes the versioning work correctly.
-
-```bash
+# installing obd through pip - not recommended
 python3.8 -m pip install --user obd
 ```
 
 ```bash
-# Install python-OBD from source (github repository)
+# Recommended: install python-OBD from source (github repository)
 git clone https://github.com/brendan-w/python-OBD.git
 cd python-OBD
-python3.8 setup.py sdist
-python3.8 -m pip install --user .
+python3.8 -m build
+python3.8 -m pip install --user dist/dist/obd-0.7.1-py3-none-any.whl
 ```
 
 Install this software:
@@ -297,8 +320,8 @@ Install this software:
 # get latest version of this software from github repository
 git clone https://github.com/thatlarrypearson/telemetry-obd.git
 cd telemetry-obd
-python3.8 setup.py sdist
-python3.8 -m pip install --user .
+python3.8 -m build
+python3.8 -m pip install --user dist/telemetry_obd-0.2-py3-none-any.whl
 ```
 
 On Windows 10, connecting to USB or Bluetooth ELM 327 OBD interfaces is simple.  Plug in the USB and it works.  Pair the Bluetooth ELM 327 OBD interface and it works.  Linux and Raspberry Pi systems are a bit more challenging.
