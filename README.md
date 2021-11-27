@@ -122,6 +122,8 @@ Output data files are in a hybrid format.  Data files contain records separated 
 * ```obd_response_value```
   OBD response value returned by the vehicle.  When the OBD command gets no response, the response is ```"no response"```.  Response values are either a string like ```"no response"``` and ```"TEST_VIN_22_CHARS"``` or they are a [Pint](https://pint.readthedocs.io/en/stable/) encoded value like ```"25 degC"``` and ```"101 kilopascal"```.
 
+  Some OBD commands will respond with multiple values in a list.  The values within the list can also be Pint values.  This works just fine in JSON but the code reading these output files will need to be able to manage imbedded lists within the response values.  [Telemetry OBD Data To CSV File](https://github.com/thatlarrypearson/telemetry-obd-log-to-csv) contains two programs, ```obd_log_evaluation``` and ```obd_log_to_csv```, providing good examples of how to handle multiple return values.
+
 * ```iso_ts_pre```
   ISO formatted timestamp taken before the OBD command was issued to the vehicle (```datetime.isoformat(datetime.now(tz=timezone.utc))```).
 
@@ -485,9 +487,11 @@ Before turning off the vehicle:
 
 ## Software Testing
 
-Software was tested using a [Freematics OBD-II Emulator](https://freematics.com/products/freematics-obd-emulator-mk2/) (vehicle emulator)as well as in actual vehicles.  The test environment is as follows:
+Software was tested manually using a [Freematics OBD-II Emulator](https://freematics.com/products/freematics-obd-emulator-mk2/) (vehicle emulator) as well as in actual vehicles.  The test environment is as follows:
 
 ![Run Cycles](docs/README-TestEnvironment.JPG)
+
+The Freematics OBD-II Emulator does not cover all available OBD commands.  This is especially true for the additional commands provided through ```add_commands.py```.  Be aware that actual vehicle responses may not match the software.  Also be aware that test code coverage in ```add_commands.py``` is sketchy at best.  Your mileage may vary.
 
 ## Manufacturer Warranty Information
 

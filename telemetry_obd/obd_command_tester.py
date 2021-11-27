@@ -20,7 +20,8 @@ from .obd_common_functions import (
     get_elm_info,
     get_config_path,
     get_directory,
-    get_output_file_name
+    get_output_file_name,
+    clean_obd_query_response
 )
 from .add_commands import NEW_COMMANDS
 
@@ -97,6 +98,7 @@ def main():
     fast = not args['no_fast']
     timeout = args['timeout']
     verbose = args['verbose']
+    cycles = args['cycles']
 
     # OBD(portstr=None, baudrate=None, protocol=None, fast=True, timeout=0.1, check_voltage=True)
     connection = obd.OBD(fast=fast, timeout=timeout)
@@ -124,10 +126,13 @@ def main():
         mode='w',
         encoding='utf-8'
     ) as out_file:
-        for cycle in range(CYCLE_COUNT):
+        for cycle in range(cycles):
             if verbose:
-                print(f"cycle {cycle}")
+                print(f"cycle {cycle} in {cycles}")
             for command_name in get_command_list():
+                if verbose:
+                    print(f"command_name {command_name}")
+
                 iso_format_pre = datetime.isoformat(
                     datetime.now(tz=timezone.utc)
                 )
@@ -150,10 +155,7 @@ def main():
                     datetime.now(tz=timezone.utc)
                 )
 
-                if obd_response.is_null():
-                    obd_response_value = "no response"
-                else:
-                    obd_response_value = obd_response.value
+                obd_response_value = clean_obd_query_response(command_name, obd_response, verbose=verbose)
 
                 if verbose:
                     print(
@@ -163,12 +165,9 @@ def main():
                         iso_format_post
                     )
 
-                if isinstance(obd_response_value, bytearray):
-                    obd_response_value = obd_response_value.decode("utf-8")
-
                 out_file.write(json.dumps({
                             'command_name': command_name,
-                            'obd_response_value': f"{obd_response_value}",
+                            'obd_response_value': obd_response_value,
                             'iso_ts_pre': iso_format_pre,
                             'iso_ts_post': iso_format_post,
                         }) + "\n"

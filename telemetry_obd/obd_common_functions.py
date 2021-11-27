@@ -4,8 +4,13 @@ from typing import List
 from datetime import datetime, timezone
 import configparser
 import obd
+from pint import UnitRegistry
+from obd.utils import BitArray
+from obd.codes import BASE_TESTS
+from obd.OBDResponse import Status
 from .add_commands import NEW_COMMANDS
 
+ureg = UnitRegistry()
 
 class CommandNameGenerator():
     """Iterator for providing a never ending list of OBD commands."""
@@ -85,7 +90,6 @@ def get_elm_info(connection):
     version_response = connection.query(obd.commands["ELM_VERSION"])
     voltage_response = connection.query(obd.commands["ELM_VOLTAGE"])
 
-    # return str(bytes(version_response.value), 'utf-8'), str(bytes(voltage_response.value), 'utf-8')
     return str(version_response.value), str(voltage_response.value)
 
 def get_directory(base_path, vin):
@@ -128,3 +132,76 @@ def load_custom_commands(connection):
             connection.supported_commands.add(new_command)
         local_commands[new_command.name] = new_command
     return local_commands
+
+def tuple_to_list_converter(t:tuple)->list:
+    """
+    Converts python-OBD/OBD/OBDCommand.py OBDCommand tuple output to list output.
+    For example, O2_SENSORS value: "((), (False, False, False, False), (False, False, False, True))"
+    gets converted to [False, False, False, False, False, False, False, True]
+    """
+    return_value = []
+    for item in t:
+        if isinstance(item, tuple) and len(item) == 0:
+            continue
+        elif isinstance(item, tuple):
+            return_value += tuple_to_list_converter(item)
+        elif isinstance(item, BitArray):
+            for b in item:
+                return_value.append(b)
+        else:
+            return_value.append(item)
+
+    return return_value
+
+def list_cleaner(command_name:str, items:list, verbose=False)->list:
+    return_value = []
+    for item in items:
+        if (
+            isinstance(item, ureg.Quantity) or
+            isinstance(item, bytearray)
+        ):
+            return_value.append(str(item))
+        elif 'Quantity' in item.__class__.__name__:
+            return_value.append(str(item))
+        else:
+            return_value.append(item)
+    return return_value
+
+def clean_obd_query_response(command_name:str, obd_response, verbose=False):
+    """
+    fixes problems in OBD connection.query responses.
+    - is_null() True to "no response"
+    - tuples to lists
+    - bytearrays to strings
+    - "NO DATA" to "no response"
+    - None to "no response"
+    - BitArray to list of True/False values
+    - Status to serialized version of Status
+    - pint Quantity object serialized by pint.
+    """
+    if obd_response.is_null() or obd_response.value is None:
+        obd_response_value = "no response"
+    elif isinstance(obd_response.value, str) and "NO DATA" in obd_response.value:
+        obd_response_value = "no response"
+    elif isinstance(obd_response.value, bytearray):
+        obd_response_value = obd_response.value.decode("utf-8")
+    elif isinstance(obd_response.value, BitArray):
+        obd_response_value = []
+        for b in obd_response.value:
+            obd_response_value.append(b)
+    elif isinstance(obd_response.value, Status):
+        obd_response_value = []
+        for base_test in BASE_TESTS:
+            obd_response_value.append(str(obd_response.value.__dict__[base_test]))
+    elif isinstance(obd_response.value, ureg.Quantity):
+        obd_response_value = str(obd_response.value)
+    elif 'Quantity' in obd_response.value.__class__.__name__:
+        obd_response_value = str(obd_response.value)
+    elif isinstance(obd_response.value, list):
+        obd_response_value = list_cleaner(command_name, obd_response.value, verbose=verbose)
+    elif isinstance(obd_response.value, tuple):
+        obd_response_value = tuple_to_list_converter(obd_response.value)
+    else:
+        obd_response_value = obd_response.value
+
+    return obd_response_value

@@ -15,7 +15,9 @@ from .obd_common_functions import (
     get_config_path,
     CommandNameGenerator,
     get_directory,
-    get_output_file_name
+    get_output_file_name,
+    tuple_to_list_converter,
+    clean_obd_query_response
 )
 
 CONNECTION_WAIT_DELAY = 15.0
@@ -158,10 +160,7 @@ def main():
                     datetime.now(tz=timezone.utc)
                 )
 
-                if obd_response.is_null():
-                    obd_response_value = "not supported"
-                else:
-                    obd_response_value = obd_response.value
+                obd_response_value = clean_obd_query_response(command_name, obd_response, verbose=verbose)
 
                 if verbose:
                     print(
@@ -171,15 +170,9 @@ def main():
                         iso_format_post
                     )
 
-                if isinstance(obd_response_value, bytearray):
-                    if command_name == "VIN":
-                        obd_response_value = obd_response_value.decode("utf-8")
-                    else:
-                        obd_response_value = obd_response_value.hex()
-
                 out_file.write(json.dumps({
                             'command_name': command_name,
-                            'obd_response_value': f"{obd_response_value}",
+                            'obd_response_value': obd_response_value,
                             'iso_ts_pre': iso_format_pre,
                             'iso_ts_post': iso_format_post,
                         }) + "\n"
