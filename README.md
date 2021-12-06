@@ -197,7 +197,12 @@ The output file format is the same as ```telemetry_obd.obd_logger``` as are many
 
 Test output files are named differently than ```obd_logger``` data files.   Both test and ```obd_logger``` data files will be placed in the ```{BASE_PATH}/{VIN}``` directory.  For example, using ```data``` (default) as the base path, if the vehicle VIN is ```FT8W4DT5HED00000```, then test files will be of the form ```data/FT8W4DT5HED00000/FT8W4DT5HED00000-TEST-20211012141917-utc.json```.  The ```obd_logger``` files will be of the form ```data/FT8W4DT5HED00000/FT8W4DT5HED00000-20211012141917-utc.json```.
 
-*IMPORTANT!*   Vehicle identification numbers (VIN) starting with a digit are known to drop the first digit when being recorded.  For example, a vehicle with a VIN of ```1FT8W4DT5HED00000``` is recorded as ```FT8W4DT5HED00000```.  Not to worry as the recorded VIN is still *VERY* *UNLIKELY* to overlap with another vehicle's VIN.
+*IMPORTANT!*   Some vehicle identification numbers (VIN) are known to drop characters when being recorded.  Not to worry as the recorded VIN is still *VERY* *UNLIKELY* to overlap with another vehicle's VIN.
+
+* 2017 Ford F-450 VIN is missing leading ```1``` digit/letter
+  * ```1FT8W4DT5HED00000``` is recorded as ```FT8W4DT5HED00000```
+* 2021 Toyota Sienna Hybrid LE is missing the trailing ```0``` digit/letter
+  * ```5TDKRKEC3MS042260``` is recorded as ```5TDKRKEC3MS04226```
 
 ## Configuration File Creation and Validation
 

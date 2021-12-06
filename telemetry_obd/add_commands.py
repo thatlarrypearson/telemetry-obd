@@ -1256,7 +1256,7 @@ def intake_manifold_pressure(messages):
     if pressure_a_supported:
         pressure_a = float((256 * b) + c) * 0.03125 * ureg.kpa
     if pressure_b_supported:
-        pressure_b = float((256 * b) + c) * 0.03125 * ureg.kpa
+        pressure_b = float((256 * d) + e) * 0.03125 * ureg.kpa
     
     return [
         pressure_a_supported,
