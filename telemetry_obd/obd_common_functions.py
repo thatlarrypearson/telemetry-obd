@@ -179,9 +179,9 @@ def clean_obd_query_response(command_name:str, obd_response, verbose=False):
     - Status to serialized version of Status
     - pint Quantity object serialized by pint.
     """
-    if obd_response.is_null() or obd_response.value is None:
-        obd_response_value = "no response"
-    elif isinstance(obd_response.value, str) and "NO DATA" in obd_response.value:
+    if (obd_response.is_null() or
+        obd_response.value is None or (
+        isinstance(obd_response.value, str) and "NO DATA" in obd_response.value )):
         obd_response_value = "no response"
     elif isinstance(obd_response.value, bytearray):
         obd_response_value = obd_response.value.decode("utf-8")
