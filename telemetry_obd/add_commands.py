@@ -2,7 +2,7 @@
 # https://python-obd.readthedocs.io/en/latest/Custom%20Commands/
 from obd import OBDCommand, ECU
 from obd.decoders import percent, count, raw_string, pid, encoded_string
-from pint import UnitRegistry 
+from pint import UnitRegistry
 from pint.unit import ScaleConverter
 from pint.unit import UnitDefinition
 
@@ -93,10 +93,11 @@ def engine_temperature(messages):
 
     d = messages[0].data[2:]
 
-    sensor_a = (d[1] - 40) * ureg.celsius if d[0] & 1 else None
-    sensor_b = (d[2] - 40) * ureg.celsius if d[0] & 2 else None
+    sensor_a = int(d[1] - 40) if d[0] & 1 else None
+    sensor_b = int(d[2] - 40) if d[0] & 2 else None
 
-    return [sensor_a, sensor_b, ]
+    # ureg.celsius is non-multiplicative unit
+    return [ureg.Quantity(sensor_a, ureg.celsius), ureg.Quantity(sensor_b, ureg.celsius), ]
 
 def fuel_rate_2(messages):
     if no_data(messages):
@@ -316,12 +317,11 @@ def commanded_diesel_air_intake(messages):
     ]
 
 def egr_temp_scale(temp):
-    temp = temp - 40
-    return temp * ureg.celsius
+    return ureg.Quantity((temp - 40), ureg.celsius)
 
 def egr_temp_wide_range_scale(temp):
     temp = (temp * 4) - 40
-    return temp * ureg.celsius
+    return ureg.Quantity(temp, ureg.celsius)
 
 def egr_temp(messages):
     if no_data(messages):
@@ -343,22 +343,22 @@ def egr_temp(messages):
     egr_temp_bank_2_sensor_2_wide_range_supported = a & (1 << 7)
 
     if egr_temp_bank_1_sensor_1_supported:
-        egr_temp_bank_1_sensor_1 = egr_temp(b)
+        egr_temp_bank_1_sensor_1 = egr_temp_scale(b)
     else:
         egr_temp_bank_1_sensor_1 = None
 
     if egr_temp_bank_1_sensor_2_supported:
-        egr_temp_bank_1_sensor_2 = egr_temp(c)
+        egr_temp_bank_1_sensor_2 = egr_temp_scale(c)
     else:
         egr_temp_bank_2_sensor_2 = None
 
     if egr_temp_bank_2_sensor_1_supported:
-        egr_temp_bank_2_sensor_1 = egr_temp(d)
+        egr_temp_bank_2_sensor_1 = egr_temp_scale(d)
     else:
         egr_temp_bank_2_sensor_1 = None
 
     if egr_temp_bank_2_sensor_2_supported:
-        egr_temp_bank_2_sensor_2 = egr_temp(e)
+        egr_temp_bank_2_sensor_2 = egr_temp_scale(e)
     else:
         egr_temp_bank_2_sensor_2 = None
 
@@ -481,7 +481,7 @@ def fuel_pressure_control(messages):
         fuel_rail_pressure_a = None
     
     if fuel_temperature_a_supported:
-        fuel_temperature_a = (f - 40.0) * ureg.celsius
+        fuel_temperature_a = ureg.Quantity((f - 40.0), ureg.celsius)
     else:
         fuel_temperature_a = None
 
@@ -496,7 +496,7 @@ def fuel_pressure_control(messages):
         fuel_rail_pressure_b = None
     
     if fuel_temperature_b_supported:
-        fuel_temperature_b = (k - 40.0) * ureg.celsius
+        fuel_temperature_b = ureg.Quantity((k - 40.0), ureg.celsius)
     else:
         fuel_temperature_b = None
 
@@ -845,13 +845,13 @@ def turbo_temp(messages):
     turbo_turbine_outlet_temperature = None
 
     if turbo_compressor_inlet_temperature_supported:
-        turbo_compressor_inlet_temperature = (b - 40) * ureg.celsius
+        turbo_compressor_inlet_temperature = ureg.Quantity((b - 40), ureg.celsius)
     if turbo_compressor_outlet_temperature_supported:
-        turbo_compressor_outlet_temperature = (c - 40) * ureg.celsius
+        turbo_compressor_outlet_temperature = ureg.Quantity((c - 40), ureg.celsius)
     if turbo_turbine_inlet_temperature_supported:
-        turbo_turbine_inlet_temperature = ((((256 * d) + e) * 0.1) - 40) * ureg.celsius
+        turbo_turbine_inlet_temperature = ureg.Quantity(((((256 * d) + e) * 0.1) - 40), ureg.celsius)
     if turbo_turbine_outlet_temperature_supported:
-        turbo_turbine_outlet_temperature = ((((256 * f) + g) * 0.1) - 40) * ureg.celsius
+        turbo_turbine_outlet_temperature = ureg.Quantity(((((256 * f) + g) * 0.1) - 40), ureg.celsius)
 
     return [
         turbo_compressor_inlet_temperature_supported,
@@ -884,13 +884,13 @@ def cact(messages):
     cact_bank_2_sensor_2 = None
 
     if cact_bank_1_sensor_1_supported:
-        cact_bank_1_sensor_1 = (b - 40) * ureg.celsius
+        cact_bank_1_sensor_1 = ureg.Quantity((b - 40), ureg.celsius)
     if cact_bank_1_sensor_2_supported:
-        cact_bank_1_sensor_2 = (c - 40) * ureg.celsius
+        cact_bank_1_sensor_2 = ureg.Quantity((c - 40), ureg.celsius)
     if cact_bank_2_sensor_1_supported:
-        cact_bank_2_sensor_1 = (d - 40) * ureg.celsius
+        cact_bank_2_sensor_1 = ureg.Quantity((d - 40), ureg.celsius)
     if cact_bank_2_sensor_2_supported:
-        cact_bank_2_sensor_2 = (e - 40) * ureg.celsius
+        cact_bank_2_sensor_2 = ureg.Quanitty((e - 40), ureg.celsius)
 
     return [
         cact_bank_1_sensor_1_supported,
@@ -927,13 +927,13 @@ def egt_bank_temp(messages):
     egt_sensor_4 = None
 
     if egt_sensor_1_supported:
-        egt_sensor_1 = ((((256 * b) + c) * 0.1) - 40.0) * ureg.celsius
+        egt_sensor_1 = ureg.Quantity(((((256 * b) + c) * 0.1) - 40.0), ureg.celsius)
     if egt_sensor_2_supported:
-        egt_sensor_2 = ((((256 * d) + e) * 0.1) - 40.0) * ureg.celsius
+        egt_sensor_2 = ureg.Quantity(((((256 * d) + e) * 0.1) - 40.0), ureg.celsius)
     if egt_sensor_3_supported:
-        egt_sensor_3 = ((((256 * f) + g) * 0.1) - 40.0) * ureg.celsius
+        egt_sensor_3 = ureg.Quantity(((((256 * f) + g) * 0.1) - 40.0), ureg.celsius)
     if egt_sensor_4_supported:
-        egt_sensor_4 = ((((256 * h) + i) * 0.1) - 40.0) * ureg.celsius
+        egt_sensor_4 = ureg.Quantity(((((256 * h) + i) * 0.1) - 40.0), ureg.celsius)
 
     return [
         egt_sensor_1_supported,
@@ -1008,13 +1008,13 @@ def dpf_temp(messages):
     dpf_bank_2_outlet_temp = None
 
     if dpf_bank_1_inlet_temp_supported:
-        dpf_bank_1_inlet_temp = float((256.0 * b) + c) * 0.1 * ureg.celsius
+        dpf_bank_1_inlet_temp = ureg.Quantity(float((256.0 * b) + c) * 0.1, ureg.celsius)
     if dpf_bank_1_outlet_temp_supported:
-        dpf_bank_1_outlet_temp = float((256.0 * d) + e) * 0.1 * ureg.celsius
+        dpf_bank_1_outlet_temp = ureg.Quantity(float((256.0 * d) + e) * 0.1, ureg.celsius)
     if dpf_bank_2_inlet_temp_supported:
-        dpf_bank_2_inlet_temp = float((256.0 * f) + g) * 0.1 * ureg.celsius
+        dpf_bank_2_inlet_temp = ureg.Quantity(float((256.0 * f) + g) * 0.1, ureg.celsius)
     if dpf_bank_2_outlet_temp_supported:
-        dpf_bank_2_outlet_temp = float((256.0 * h) + i) * 0.1 * ureg.celsius
+        dpf_bank_2_outlet_temp = ureg.Quantity(float((256.0 * h) + i) * 0.1, ureg.celsius)
 
     return [
         dpf_bank_1_inlet_temp_supported,
@@ -1798,13 +1798,13 @@ def exhaust_gas_temp_bank(messages):
     sensor_8 = None
 
     if sensor_5_supported:
-        sensor_5 = ((((256 * b) + c) * 0.1) - 40) * ureg.celsius
+        sensor_5 = ureg.Quantity(((((256 * b) + c) * 0.1) - 40), ureg.celsius)
     if sensor_6_supported:
-        sensor_6 = ((((256 * d) + e) * 0.1) - 40) * ureg.celsius
+        sensor_6 = ureg.Quantity(((((256 * d) + e) * 0.1) - 40), ureg.celsius)
     if sensor_7_supported:
-        sensor_7 = ((((256 * f) + g) * 0.1) - 40) * ureg.celsius
+        sensor_7 = ureg.Quantity(((((256 * f) + g) * 0.1) - 40), ureg.celsius)
     if sensor_8_supported:
-        sensor_8 = ((((256 * h) + i) * 0.1) - 40) * ureg.celsius
+        sensor_8 = ureg.Quantity(((((256 * h) + i) * 0.1) - 40), ureg.celsius)
 
     return [
         sensor_5_supported,
@@ -1880,7 +1880,7 @@ def def_sensor(messages):
     if def_concentration_supported:
         def_concentration = b * 0.25 * ureg.percent
     if def_temp_supported:
-        def_temp = (c - 40) * ureg.celsius
+        def_temp = ureg.Quantity((c - 40), ureg.celsius)
     if def_level_supported:
         def_level = d * (100.0 / 255.0) * ureg.percent
 
@@ -2211,13 +2211,13 @@ def alternative_fuel(messages):
     if alternative_fuel_rail_pressure_supported:
         alternative_fuel_rail_pressure = float((256 * b) + c) * 0.03125 * ureg.kPa
     if alternative_fuel_rail_temperature_supported:
-        alternative_fuel_rail_temperature = (d - 40) * ureg.celsius
+        alternative_fuel_rail_temperature = ureg.Quantity((d - 40), ureg.celsius)
     if alternative_fuel_tank_pressure_supported:
         alternative_fuel_tank_pressure = float((256 * e) + f) * 0.125 * ureg.kPa
     if alternative_fuel_tank_pressure_wide_range_supported:
         alternative_fuel_tank_pressure_wide_range = ((256 * g) + h) * ureg.kPa
     if alternative_fuel_tank_temperature_supported:
-        alternative_fuel_tank_temperature = ((i * 2) - 256) * ureg.celsius
+        alternative_fuel_tank_temperature = ureg.Quantity(((i * 2) - 256), ureg.celsius)
 
     return [
         alternative_fuel_rail_pressure_supported,

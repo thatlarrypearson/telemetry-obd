@@ -1,26 +1,30 @@
-"""telemetry_obd/obd_logger.py: Onboard Diagnostic Data Logger."""
-
-from time import sleep
+# telemetry_obd/obd_logger.py: Onboard Diagnostic Data Logger.
+"""
+telemetry_obd/obd_logger.py: Onboard Diagnostic Data Logger.
+"""
+from sys import stdout, stderr
 from datetime import datetime, timezone
 from pathlib import Path
 from argparse import ArgumentParser
+from pint import OffsetUnitCalculusError
 import sys
 import json
 import logging
+from traceback import print_exc
 import obd
 from .obd_common_functions import (
-    load_custom_commands,
     get_vin_from_vehicle,
     get_elm_info,
     get_config_path,
     CommandNameGenerator,
     get_directory,
     get_output_file_name,
-    tuple_to_list_converter,
-    clean_obd_query_response
+    clean_obd_query_response,
+    get_obd_connection,
+    recover_lost_connection,
+    execute_obd_command,
 )
 
-CONNECTION_WAIT_DELAY = 15.0
 FULL_CYCLES_COUNT = 50
 TIMEOUT=1.0
 
@@ -101,23 +105,15 @@ def main():
     verbose = args['verbose']
 
     # OBD(portstr=None, baudrate=None, protocol=None, fast=True, timeout=0.1, check_voltage=True)
-    connection = obd.OBD(fast=fast, timeout=timeout)
-    while not connection.is_connected():
-        if connection.status() == obd.OBDStatus.NOT_CONNECTED:
-            print("ELM Adapter Not Found, Ending")
-            exit(1)
-        if verbose:
-            print(f"Waiting for OBD Connection: {connection.status()}")
-        sleep(CONNECTION_WAIT_DELAY)
-        connection = obd.OBD()
+    connection = get_obd_connection(fast=fast, timeout=timeout, verbose=verbose)
 
     elm_version, elm_voltage = get_elm_info(connection)
-    print("ELM VERSION", elm_version, "ELM VOLTAGE", elm_voltage)
-
-    custom_commands = load_custom_commands(connection)
+    if verbose:
+        print("ELM VERSION", elm_version, "ELM VOLTAGE", elm_voltage)
 
     vin = get_vin_from_vehicle(connection)
-    print(f"VIN: {vin}")
+    if verbose:
+        print(f"VIN: {vin}")
 
     config_file = args['config_file']
     config_dir = args['config_dir']
@@ -137,24 +133,35 @@ def main():
             encoding='utf-8'
         ) as out_file:
             for command_name in command_name_generator:
+                if verbose:
+                    print(f"command_name: {command_name}")
+
+                if '-' in command_name:
+                    print("skipping malformed command_name: {command_name}")
+                    continue
+                    
                 iso_format_pre = datetime.isoformat(
                     datetime.now(tz=timezone.utc)
                 )
 
-                if obd.commands.has_name(command_name):
-                    obd_response = connection.query(
-                        obd.commands[command_name],
-                        force=True
-                    )
-                elif command_name in custom_commands.keys():
-                    obd_response = connection.query(
-                        custom_commands[command_name],
-                        force=True
-                    )
-                else:
-                    if verbose:
-                        print(f"\nmissing command: <{command_name}>\n")
-                    continue
+                try:
+
+                    obd_response = execute_obd_command(connection, command_name, verbose=verbose)
+
+                except OffsetUnitCalculusError as e:
+                    print(f"Excpetion: {e.__class__.__name__}: {e}")
+                    print(f"OffsetUnitCalculusError on {command_name}, decoder must be fixed")
+                    print_exc()
+
+                except Exception as e:
+                    stdout.flush()
+                    stderr.flush()
+                    print_exc()
+                    print(f"Exception: {e}")
+                    if not connection.is_connected():
+                        print(f"connection failure on {command_name}, reconnecting")
+                        connection.close()
+                        connection = get_obd_connection(fast=fast, timeout=timeout, verbose=verbose)
 
                 iso_format_post = datetime.isoformat(
                     datetime.now(tz=timezone.utc)
@@ -163,7 +170,7 @@ def main():
                 obd_response_value = clean_obd_query_response(command_name, obd_response, verbose=verbose)
 
                 if verbose:
-                    print(
+                    print("saving:",
                         command_name,
                         obd_response_value,
                         iso_format_pre,
@@ -177,6 +184,10 @@ def main():
                             'iso_ts_post': iso_format_post,
                         }) + "\n"
                 )
+
+                if not connection.is_connected():
+                    print(f"connection lost, retrying after {command_name}")
+                    connection = recover_lost_connection(connection, fast=fast, timeout=timeout, verbose=verbose)
 
                 if (
                     command_name_generator.full_cycles_count >
