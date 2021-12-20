@@ -191,6 +191,9 @@ def clean_obd_query_response(command_name:str, obd_response, verbose=False):
     - Status to serialized version of Status
     - pint Quantity object serialized by pint.
     """
+    if not obd_response:
+        return None
+
     if (obd_response.is_null() or
         obd_response.value is None or (
         isinstance(obd_response.value, str) and "NO DATA" in obd_response.value )):
@@ -285,6 +288,7 @@ def execute_obd_command(connection:obd.OBD, command_name:str, verbose=True):
         obd_response = connection.query(local_commands[command_name], force=True)
     else:
         # raise LookupError(f"command <{command_name}> missing from python-obd and custom commands")
-        return f"LookupError: command <{command_name}> missing from python-obd and custom commands"
+        print(f"LookupError: command <{command_name}> missing from python-obd and custom commands")
+        return None
 
     return obd_response
