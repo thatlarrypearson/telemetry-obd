@@ -288,7 +288,7 @@ def execute_obd_command(connection:obd.OBD, command_name:str, verbose=True):
         obd_response = connection.query(local_commands[command_name], force=True)
     else:
         # raise LookupError(f"command <{command_name}> missing from python-obd and custom commands")
-        print(f"LookupError: command <{command_name}> missing from python-obd and custom commands")
+        print(f"LookupError: config file has command name <{command_name}> that doesn't exist")
         return None
 
     return obd_response
