@@ -226,7 +226,7 @@ def get_obd_connection(fast:bool, timeout:float, verbose=True)->obd.OBD:
     return an OBD connection instance that connects to the first ELM 327 compatible device
     connected to any of the local serial ports.  If no device found, exit program with error code 1.
     """
-    ports = obd.scan_serial()
+    ports = sorted(obd.scan_serial())
 
     if verbose:
         print(f"identified ports {ports}")
