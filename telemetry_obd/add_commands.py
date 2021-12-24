@@ -93,11 +93,11 @@ def engine_temperature(messages):
 
     d = messages[0].data[2:]
 
-    sensor_a = int(d[1] - 40) if d[0] & 1 else None
-    sensor_b = int(d[2] - 40) if d[0] & 2 else None
+    sensor_a = ureg.Quantity(int(d[1] - 40), ureg.celsius) if d[0] & 1 else None
+    sensor_b = ureg.Quantity(int(d[2] - 40), ureg.celsius) if d[0] & 2 else None
 
     # ureg.celsius is non-multiplicative unit
-    return [ureg.Quantity(sensor_a, ureg.celsius), ureg.Quantity(sensor_b, ureg.celsius), ]
+    return [sensor_a, sensor_b]
 
 def fuel_rate_2(messages):
     if no_data(messages):
