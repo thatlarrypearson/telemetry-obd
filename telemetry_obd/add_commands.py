@@ -1069,11 +1069,11 @@ def engine_run_time_aecd(messages):
 
     if total_run_time_with_ei_aecd_2_active_supported:
         total_run_time_with_ei_aecd_2_active_timer_1 = run_time_calculator(messages[0].data[11:15])
-        total_run_time_with_ei_aecd_2_active_timer_2 = run_time_calculator(messages[0].data[15,19])
+        total_run_time_with_ei_aecd_2_active_timer_2 = run_time_calculator(messages[0].data[15:19])
 
     if total_run_time_with_ei_aecd_3_active_supported:
-        total_run_time_with_ei_aecd_3_active_timer_1 = run_time_calculator(messages[0].data[19,23])
-        total_run_time_with_ei_aecd_3_active_timer_2 = run_time_calculator(messages[0].data[23,27])
+        total_run_time_with_ei_aecd_3_active_timer_1 = run_time_calculator(messages[0].data[19:23])
+        total_run_time_with_ei_aecd_3_active_timer_2 = run_time_calculator(messages[0].data[23:27])
 
     if total_run_time_with_ei_aecd_4_active_supported:
         total_run_time_with_ei_aecd_4_active_timer_1 = run_time_calculator(messages[0].data[27:31])
