@@ -344,7 +344,7 @@ def egr_temp(messages):
     if egr_temp_bank_1_sensor_2_supported:
         egr_temp_bank_1_sensor_2 = egr_temp_scale(c)
     else:
-        egr_temp_bank_2_sensor_2 = None
+        egr_temp_bank_1_sensor_2 = None
 
     if egr_temp_bank_2_sensor_1_supported:
         egr_temp_bank_2_sensor_1 = egr_temp_scale(d)
