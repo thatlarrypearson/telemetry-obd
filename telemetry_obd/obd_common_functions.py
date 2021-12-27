@@ -6,20 +6,24 @@ from typing import List
 from datetime import datetime, timezone
 import configparser
 import obd
+from obd.UnitsAndScaling import Unit as ureg
 from pint import UnitRegistry
+from pint.unit import ScaleConverter
+from pint.unit import UnitDefinition
 from obd.utils import BitArray
 from obd.codes import BASE_TESTS
 from obd.OBDResponse import Status
 from .add_commands import NEW_COMMANDS
 
-ureg = UnitRegistry()
+ureg.define(UnitDefinition('percent', 'percent', (), ScaleConverter(1 / 100.0)))
+ureg.define("ppm = count / 1000000 = PPM = parts_per_million")
+
 CONNECTION_WAIT_DELAY = 15.0
 CONNECTION_RETRY_COUNT = 5
 
 local_commands = {
     new_command.name: new_command for new_command in NEW_COMMANDS
 }
-
 
 
 class CommandNameGenerator():

@@ -2,13 +2,7 @@
 # https://python-obd.readthedocs.io/en/latest/Custom%20Commands/
 from obd import OBDCommand, ECU
 from obd.decoders import percent, count, raw_string, pid, encoded_string
-from pint import UnitRegistry
-from pint.unit import ScaleConverter
-from pint.unit import UnitDefinition
-
-ureg = UnitRegistry()
-ureg.define(UnitDefinition('percent', 'percent', (), ScaleConverter(1 / 100.0)))
-ureg.define("ppm = count / 1000000 = PPM = parts_per_million")
+from .obd_common_functions import ureg
 
 # useful code insert for debugging decoders
 # place immediately after the function declaration:
@@ -1254,9 +1248,9 @@ def intake_manifold_pressure(messages):
     pressure_b = None
 
     if pressure_a_supported:
-        pressure_a = float((256 * b) + c) * 0.03125 * ureg.kpa
+        pressure_a = float((256 * b) + c) * 0.03125 * ureg.kPa
     if pressure_b_supported:
-        pressure_b = float((256 * d) + e) * 0.03125 * ureg.kpa
+        pressure_b = float((256 * d) + e) * 0.03125 * ureg.kPa
     
     return [
         pressure_a_supported,
