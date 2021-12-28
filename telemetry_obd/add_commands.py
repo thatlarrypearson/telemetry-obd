@@ -24,16 +24,19 @@ from .obd_common_functions import ureg
 # key takeaways from using this code:
 #   messages[i].frames[j].raw == "NO DATA\r" when the message contains no response.
 
-def no_data(messages:list)->bool:
+def no_data(messages:list) -> bool:
     """
     Returns False if the OBD raw interface provides some semblance
     of valid data.
     """
+    # Look for frames without embedded "NO DATA" strings
     for message in messages:
         for frame in message.frames:
             if "NO DATA" not in frame.raw:
                 return False
-    return True
+
+    # zero length responses are another form of no data
+    return bool(len(messages[0].data[2:]))
 
 
 # custom decoders
