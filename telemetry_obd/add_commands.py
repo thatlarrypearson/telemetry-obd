@@ -1,12 +1,14 @@
 # add_commands.py
 # https://python-obd.readthedocs.io/en/latest/Custom%20Commands/
+import logging
 from obd import OBDCommand, ECU
 from obd.decoders import percent, count, raw_string, pid, encoded_string
 from .obd_common_functions import ureg
 
+logger = logging.getLogger(__name__)
+
 # useful code insert for debugging decoders
 # place immediately after the function declaration:
-# import logging
 # def decoder_function(messages):
 #   logging.debug(f"messages type {type(messages)}")
 #   for index, message in enumerate(messages):

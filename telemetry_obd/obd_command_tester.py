@@ -28,6 +28,8 @@ from .obd_common_functions import (
 )
 from .add_commands import NEW_COMMANDS
 
+logger = logging.getLogger(__name__)
+
 CONNECTION_WAIT_DELAY = 15.0
 CYCLE_COUNT = 40
 TIMEOUT=0.5

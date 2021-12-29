@@ -4,12 +4,15 @@
 Lists every known OBD command with relevant info.
 """
 import csv
+import logging
 from sys import stdout
 from rich.console import Console
 from rich.table import Table
 from obd.commands import __mode1__,  __mode9__
 from argparse import ArgumentParser
 from .add_commands import NEW_COMMANDS
+
+logger = logging.getLogger(__name__)
 
 def get_command_list() -> dict:
     """

@@ -25,6 +25,8 @@ from .obd_common_functions import (
     execute_obd_command,
 )
 
+logger = logging.getLogger(__name__)
+
 FULL_CYCLES_COUNT = 50
 TIMEOUT=1.0
 

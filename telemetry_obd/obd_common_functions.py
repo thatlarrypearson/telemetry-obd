@@ -16,6 +16,8 @@ from obd.codes import BASE_TESTS
 from obd.OBDResponse import Status
 from .add_commands import NEW_COMMANDS
 
+logger = logging.getLogger(__name__)
+
 ureg.define(UnitDefinition('percent', 'percent', (), ScaleConverter(1 / 100.0)))
 ureg.define("ppm = count / 1000000 = PPM = parts_per_million")
 
