@@ -4,6 +4,7 @@ from time import sleep
 from pathlib import Path
 from typing import List
 from datetime import datetime, timezone
+import logging
 import configparser
 import obd
 from obd.UnitsAndScaling import Unit as ureg
@@ -108,7 +109,6 @@ def get_elm_info(connection):
 
 def get_directory(base_path, vin):
     """Generate directory where data files go."""
-    # print("base_path", base_path, "vin", vin)
     path = Path(base_path) / Path(str(vin))
     path.mkdir(parents=True, exist_ok=True)
     return path
@@ -143,7 +143,7 @@ def load_custom_commands(connection, verbose=False):
     custom_commands = {}
     for new_command in NEW_COMMANDS:
         if verbose:
-            print(f"load_custom_commands(): {new_command.name}")
+            logging.info(f"load_custom_commands(): {new_command.name}")
         if connection:
             connection.supported_commands.add(new_command)
         custom_commands[new_command.name] = new_command
@@ -233,10 +233,10 @@ def get_obd_connection(fast:bool, timeout:float, verbose=True)->obd.OBD:
     ports = sorted(obd.scan_serial())
 
     if verbose:
-        print(f"identified ports {ports}")
+        logging.info(f"identified ports {ports}")
 
     for port in ports:
-        print(f"connecting to port {port}")
+        logging.info(f"connecting to port {port}")
 
         try:
 
@@ -245,27 +245,25 @@ def get_obd_connection(fast:bool, timeout:float, verbose=True)->obd.OBD:
             for t in range(1, CONNECTION_RETRY_COUNT):
 
                 if connection.is_connected():
-                    print(f"connected to {port} on try {t} of {CONNECTION_RETRY_COUNT}")
+                    logging.info(f"connected to {port} on try {t} of {CONNECTION_RETRY_COUNT}")
                     custom_commands = load_custom_commands(connection, verbose=verbose)
                     return connection
 
                 if connection.status() == obd.OBDStatus.NOT_CONNECTED:
                     if verbose:
-                        print(f"ELM 327 Adapter Not Found on {port}on try {t} of {CONNECTION_RETRY_COUNT}")
+                        logging.warn(f"ELM 327 Adapter Not Found on {port}on try {t} of {CONNECTION_RETRY_COUNT}")
                     break
 
                 if verbose:
-                    print(f"Waiting for OBD Connection on {port} on try {t} of {CONNECTION_RETRY_COUNT}: {connection.status()}")
+                    logging.info(f"Waiting for OBD Connection on {port} on try {t} of {CONNECTION_RETRY_COUNT}: {connection.status()}")
 
-                # connection.close()
                 sleep(CONNECTION_WAIT_DELAY)
-                # connection = obd.OBD(portstr=port, fast=fast, timeout=timeout)
 
         except Exception as e:
-            print(f"OBD Connection on port {port} unavailable.")
+            logging.exception(f"OBD Connection on port {port} unavailable.  Exception: {e}")
 
-    print(f"ELM 327 type device not found in devices: {ports}")
-    print("exiting...")
+    logging.info(f"ELM 327 type device not found in devices: {ports}")
+    logging.info("exiting...")
 
     exit(1)
 
@@ -273,7 +271,7 @@ def recover_lost_connection(connection:obd.OBD, fast:bool, timeout:float, verbos
     """
     Recover lost connection and return a new working connection handle.
     """
-    print("recovering lost connection")
+    logging.info("recovering lost connection")
     connection.close()
     sleep(CONNECTION_WAIT_DELAY)
     connection = get_obd_connection(fast=fast, timeout=timeout, verbose=verbose)
@@ -292,7 +290,7 @@ def execute_obd_command(connection:obd.OBD, command_name:str, verbose=True):
         obd_response = connection.query(local_commands[command_name], force=True)
     else:
         # raise LookupError(f"command <{command_name}> missing from python-obd and custom commands")
-        print(f"LookupError: config file has command name <{command_name}> that doesn't exist")
+        logging.warn(f"LookupError: config file has command name <{command_name}> that doesn't exist")
         return None
 
     return obd_response

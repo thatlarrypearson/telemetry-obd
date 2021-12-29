@@ -6,20 +6,21 @@ from .obd_common_functions import ureg
 
 # useful code insert for debugging decoders
 # place immediately after the function declaration:
+# import logging
 # def decoder_function(messages):
-#   print(f"messages type {type(messages)}")
+#   logging.debug(f"messages type {type(messages)}")
 #   for index, message in enumerate(messages):
-#       print(f"messages[{index}] {message}")
+#       logging.debug(f"messages[{index}] {message}")
 #       if not message.parsed():
-#           print(f"messages[{index}] not parsed ")
-#       print(f"messages[{index}].data length {len(message.data)}")
+#           logging.debug(f"messages[{index}] not parsed ")
+#       logging.debug(f"messages[{index}].data length {len(message.data)}")
 #       for midx, b in enumerate(message.data):
-#           print(f"messages[{index}].data[{midx}] {hex(int(b))}")
-#       print(f"messages[{index}].frames type {type(message.frames)}")
+#           logging.debug(f"messages[{index}].data[{midx}] {hex(int(b))}")
+#       logging.debug(f"messages[{index}].frames type {type(message.frames)}")
 #       for fidx, frame in enumerate(message.frames):
-#           print(f"messages[{index}].frames[{fidx}].raw length {len(frame.raw)}")
-#           print(f"messages[{index}].frames[{fidx}].raw type {type(frame.raw)}")
-#           print(f"messages[{index}].frames[{fidx}].raw {frame.raw}")
+#           logging.debug(f"messages[{index}].frames[{fidx}].raw length {len(frame.raw)}")
+#           logging.debug(f"messages[{index}].frames[{fidx}].raw type {type(frame.raw)}")
+#           logging.debug(f"messages[{index}].frames[{fidx}].raw {frame.raw}")
 #
 # key takeaways from using this code:
 #   messages[i].frames[j].raw == "NO DATA\r" when the message contains no response.

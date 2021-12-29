@@ -109,11 +109,11 @@ def main():
 
     elm_version, elm_voltage = get_elm_info(connection)
     if verbose:
-        print("ELM VERSION", elm_version, "ELM VOLTAGE", elm_voltage)
+        logging.info(f"ELM VERSION: {elm_version} ELM VOLTAGE: {elm_voltage}")
 
     vin = get_vin_from_vehicle(connection)
     if verbose:
-        print(f"VIN: {vin}")
+        logging.info(f"VIN: {vin}")
 
     config_file = args['config_file']
     config_dir = args['config_dir']
@@ -134,10 +134,10 @@ def main():
         ) as out_file:
             for command_name in command_name_generator:
                 if verbose:
-                    print(f"command_name: {command_name}")
+                    logging.info(f"command_name: {command_name}")
 
                 if '-' in command_name:
-                    print("skipping malformed command_name: {command_name}")
+                    logging.error("skipping malformed command_name: {command_name}")
                     continue
                     
                 iso_format_pre = datetime.isoformat(
@@ -149,17 +149,15 @@ def main():
                     obd_response = execute_obd_command(connection, command_name, verbose=verbose)
 
                 except OffsetUnitCalculusError as e:
-                    print(f"Excpetion: {e.__class__.__name__}: {e}")
-                    print(f"OffsetUnitCalculusError on {command_name}, decoder must be fixed")
+                    logging.exception(f"Exception: {e.__class__.__name__}: {e}")
+                    logging.exception(f"OffsetUnitCalculusError on {command_name}, decoder must be fixed")
                     print_exc()
 
                 except Exception as e:
-                    stdout.flush()
-                    stderr.flush()
+                    logging.exception(f"Exception: {e}")
                     print_exc()
-                    print(f"Exception: {e}")
                     if not connection.is_connected():
-                        print(f"connection failure on {command_name}, reconnecting")
+                        logging.info(f"connection failure on {command_name}, reconnecting")
                         connection.close()
                         connection = get_obd_connection(fast=fast, timeout=timeout, verbose=verbose)
 
@@ -170,12 +168,7 @@ def main():
                 obd_response_value = clean_obd_query_response(command_name, obd_response, verbose=verbose)
 
                 if verbose:
-                    print("saving:",
-                        command_name,
-                        obd_response_value,
-                        iso_format_pre,
-                        iso_format_post
-                    )
+                    logging.info(f"saving: {command_name}, {obd_response_value}, {iso_format_pre}, {iso_format_post}")
 
                 out_file.write(json.dumps({
                             'command_name': command_name,
@@ -186,7 +179,7 @@ def main():
                 )
 
                 if not connection.is_connected():
-                    print(f"connection lost, retrying after {command_name}")
+                    logging.warning(f"connection lost, retrying after {command_name}")
                     connection = recover_lost_connection(connection, fast=fast, timeout=timeout, verbose=verbose)
 
                 if (

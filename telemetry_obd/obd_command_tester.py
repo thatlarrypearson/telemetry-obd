@@ -104,22 +104,22 @@ def main():
     cycles = args['cycles']
 
     if verbose:
-        print(f"argument fast: {fast}")
-        print(f"argument timeout: {timeout}")
-        print(f"argument verbose: {verbose}")
-        print(f"argument cycles: {cycles}")
+        logging.info(f"argument fast: {fast}")
+        logging.info(f"argument timeout: {timeout}")
+        logging.info(f"argument verbose: {verbose}")
+        logging.info(f"argument cycles: {cycles}")
 
     connection = get_obd_connection(fast=fast, timeout=timeout, verbose=verbose)
 
     elm_version, elm_voltage = get_elm_info(connection)
     if verbose:
-        print("ELM VERSION", elm_version, "ELM VOLTAGE", elm_voltage)
+        logging.info("ELM VERSION: {elm_version}, ELM VOLTAGE: {elm_voltage}")
 
     custom_commands = load_custom_commands(connection)
 
     vin = get_vin_from_vehicle(connection)
     if verbose:
-        print(f"VIN: {vin}")
+        logging.info(f"VIN: {vin}")
 
     base_path = args['base_path']
 
@@ -130,10 +130,10 @@ def main():
     ) as out_file:
         for cycle in range(cycles):
             if verbose:
-                print(f"cycle {cycle} in {cycles}")
+                logging.info(f"cycle {cycle} in {cycles}")
             for command_name in get_command_list():
                 if verbose:
-                    print(f"command_name {command_name}")
+                    logging.info(f"command_name {command_name}")
 
                 iso_format_pre = datetime.isoformat(
                     datetime.now(tz=timezone.utc)
@@ -144,17 +144,16 @@ def main():
                     obd_response = execute_obd_command(connection, command_name, verbose=verbose)
 
                 except OffsetUnitCalculusError as e:
-                    print(f"Excpetion: {e.__class__.__name__}: {e}")
-                    print(f"OffsetUnitCalculusError on {command_name}, decoder must be fixed")
+                    logging.exception(f"Excpetion: {e.__class__.__name__}: {e}")
+                    logging.exception(f"OffsetUnitCalculusError on {command_name}, decoder must be fixed")
+                    logging.exception(f"Exception: {e}")
                     print_exc()
 
                 except Exception as e:
-                    stdout.flush()
-                    stderr.flush()
+                    logging.exception(f"Exception: {e}")
                     print_exc()
-                    print(f"Exception: {e}")
                     if not connection.is_connected():
-                        print(f"connection failure on {command_name}, reconnecting")
+                        logging.info(f"connection failure on {command_name}, reconnecting")
                         connection.close()
                         connection = get_obd_connection(fast=fast, timeout=timeout, verbose=verbose)
 
@@ -165,12 +164,7 @@ def main():
                 obd_response_value = clean_obd_query_response(command_name, obd_response, verbose=verbose)
 
                 if verbose:
-                    print("saving:",
-                        command_name,
-                        obd_response_value,
-                        iso_format_pre,
-                        iso_format_post
-                    )
+                    logging.info("saving: {command_name}, {obd_response_value}, {iso_format_pre}, {iso_format_post}")
 
                 out_file.write(json.dumps({
                             'command_name': command_name,
