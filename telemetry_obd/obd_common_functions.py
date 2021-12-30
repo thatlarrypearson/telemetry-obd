@@ -140,12 +140,11 @@ def get_output_file_name(vin):
     dt_now = datetime.now(tz=timezone.utc).strftime("%Y%m%d%H%M%S")
     return Path(f"{vin}-{dt_now}-utc.json")
 
-def load_custom_commands(connection, verbose=False):
+def load_custom_commands(connection):
     """Load custom commands into a dictionary."""
     custom_commands = {}
     for new_command in NEW_COMMANDS:
-        if verbose:
-            logging.info(f"load_custom_commands(): {new_command.name}")
+        logging.info(f"load_custom_commands(): {new_command.name}")
         if connection:
             connection.supported_commands.add(new_command)
         custom_commands[new_command.name] = new_command
@@ -171,7 +170,7 @@ def tuple_to_list_converter(t:tuple)->list:
 
     return return_value
 
-def list_cleaner(command_name:str, items:list, verbose=False)->list:
+def list_cleaner(command_name:str, items:list)->list:
     return_value = []
     for item in items:
         if (
@@ -185,7 +184,7 @@ def list_cleaner(command_name:str, items:list, verbose=False)->list:
             return_value.append(item)
     return return_value
 
-def clean_obd_query_response(command_name:str, obd_response, verbose=False):
+def clean_obd_query_response(command_name:str, obd_response):
     """
     fixes problems in OBD connection.query responses.
     - is_null() True to "no response"
@@ -219,7 +218,7 @@ def clean_obd_query_response(command_name:str, obd_response, verbose=False):
     elif 'Quantity' in obd_response.value.__class__.__name__:
         obd_response_value = str(obd_response.value)
     elif isinstance(obd_response.value, list):
-        obd_response_value = list_cleaner(command_name, obd_response.value, verbose=verbose)
+        obd_response_value = list_cleaner(command_name, obd_response.value)
     elif isinstance(obd_response.value, tuple):
         obd_response_value = tuple_to_list_converter(obd_response.value)
     else:
@@ -227,15 +226,14 @@ def clean_obd_query_response(command_name:str, obd_response, verbose=False):
 
     return obd_response_value
 
-def get_obd_connection(fast:bool, timeout:float, verbose=True)->obd.OBD:
+def get_obd_connection(fast:bool, timeout:float)->obd.OBD:
     """
     return an OBD connection instance that connects to the first ELM 327 compatible device
     connected to any of the local serial ports.  If no device found, exit program with error code 1.
     """
     ports = sorted(obd.scan_serial())
 
-    if verbose:
-        logging.info(f"identified ports {ports}")
+    logging.info(f"identified ports {ports}")
 
     for port in ports:
         logging.info(f"connecting to port {port}")
@@ -248,16 +246,14 @@ def get_obd_connection(fast:bool, timeout:float, verbose=True)->obd.OBD:
 
                 if connection.is_connected():
                     logging.info(f"connected to {port} on try {t} of {CONNECTION_RETRY_COUNT}")
-                    custom_commands = load_custom_commands(connection, verbose=verbose)
+                    custom_commands = load_custom_commands(connection)
                     return connection
 
                 if connection.status() == obd.OBDStatus.NOT_CONNECTED:
-                    if verbose:
-                        logging.warn(f"ELM 327 Adapter Not Found on {port}on try {t} of {CONNECTION_RETRY_COUNT}")
+                    logging.warn(f"ELM 327 Adapter Not Found on {port}on try {t} of {CONNECTION_RETRY_COUNT}")
                     break
 
-                if verbose:
-                    logging.info(f"Waiting for OBD Connection on {port} on try {t} of {CONNECTION_RETRY_COUNT}: {connection.status()}")
+                logging.info(f"Waiting for OBD Connection on {port} on try {t} of {CONNECTION_RETRY_COUNT}: {connection.status()}")
 
                 sleep(CONNECTION_WAIT_DELAY)
 
@@ -269,18 +265,18 @@ def get_obd_connection(fast:bool, timeout:float, verbose=True)->obd.OBD:
 
     exit(1)
 
-def recover_lost_connection(connection:obd.OBD, fast:bool, timeout:float, verbose=True)->obd.OBD:
+def recover_lost_connection(connection:obd.OBD, fast:bool, timeout:float)->obd.OBD:
     """
     Recover lost connection and return a new working connection handle.
     """
     logging.info("recovering lost connection")
     connection.close()
     sleep(CONNECTION_WAIT_DELAY)
-    connection = get_obd_connection(fast=fast, timeout=timeout, verbose=verbose)
+    connection = get_obd_connection(fast=fast, timeout=timeout)
 
     return connection
 
-def execute_obd_command(connection:obd.OBD, command_name:str, verbose=True):
+def execute_obd_command(connection:obd.OBD, command_name:str):
     """
     executes OBD interface query given command_name on OBD connection.
     returns list or value

@@ -98,24 +98,37 @@ def main():
 
     args = argument_parsing()
 
-    if args['logging']:
-        logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
-        obd.logger.setLevel(obd.logging.DEBUG)
-
     fast = not args['no_fast']
     timeout = args['timeout']
     verbose = args['verbose']
+    full_cycles = args['full_cycles']
+
+    logging_level = logging.WARNING
+
+    if verbose:
+        logging_level = logging.INFO
+
+    if args['logging']:
+        logging_level = logging.DEBUG
+
+    logging.basicConfig(stream=sys.stdout, level=logging_level)
+    obd.logger.setLevel(logging_level)
+
+    logging.info(f"argument --fast: {fast}")
+    logging.info(f"argument --timeout: {timeout}")
+    logging.info(f"argument --verbose: {verbose}")
+    logging.info(f"argument --full_cycles: {full_cycles}")
+    logging.info(f"argument --logging: {args['logging']} ")
+    logging.debug("debug logging enabled")
 
     # OBD(portstr=None, baudrate=None, protocol=None, fast=True, timeout=0.1, check_voltage=True)
-    connection = get_obd_connection(fast=fast, timeout=timeout, verbose=verbose)
+    connection = get_obd_connection(fast=fast, timeout=timeout)
 
     elm_version, elm_voltage = get_elm_info(connection)
-    if verbose:
-        logging.info(f"ELM VERSION: {elm_version} ELM VOLTAGE: {elm_voltage}")
+    logging.info(f"ELM VERSION: {elm_version} ELM VOLTAGE: {elm_voltage}")
 
     vin = get_vin_from_vehicle(connection)
-    if verbose:
-        logging.info(f"VIN: {vin}")
+    logging.info(f"VIN: {vin}")
 
     config_file = args['config_file']
     config_dir = args['config_dir']
@@ -135,8 +148,7 @@ def main():
             encoding='utf-8'
         ) as out_file:
             for command_name in command_name_generator:
-                if verbose:
-                    logging.info(f"command_name: {command_name}")
+                logging.info(f"command_name: {command_name}")
 
                 if '-' in command_name:
                     logging.error("skipping malformed command_name: {command_name}")
@@ -148,7 +160,7 @@ def main():
 
                 try:
 
-                    obd_response = execute_obd_command(connection, command_name, verbose=verbose)
+                    obd_response = execute_obd_command(connection, command_name)
 
                 except OffsetUnitCalculusError as e:
                     logging.exception(f"Exception: {e.__class__.__name__}: {e}")
@@ -161,16 +173,15 @@ def main():
                     if not connection.is_connected():
                         logging.info(f"connection failure on {command_name}, reconnecting")
                         connection.close()
-                        connection = get_obd_connection(fast=fast, timeout=timeout, verbose=verbose)
+                        connection = get_obd_connection(fast=fast, timeout=timeout)
 
                 iso_format_post = datetime.isoformat(
                     datetime.now(tz=timezone.utc)
                 )
 
-                obd_response_value = clean_obd_query_response(command_name, obd_response, verbose=verbose)
+                obd_response_value = clean_obd_query_response(command_name, obd_response)
 
-                if verbose:
-                    logging.info(f"saving: {command_name}, {obd_response_value}, {iso_format_pre}, {iso_format_post}")
+                logging.info(f"saving: {command_name}, {obd_response_value}, {iso_format_pre}, {iso_format_post}")
 
                 out_file.write(json.dumps({
                             'command_name': command_name,
@@ -181,12 +192,12 @@ def main():
                 )
 
                 if not connection.is_connected():
-                    logging.warning(f"connection lost, retrying after {command_name}")
-                    connection = recover_lost_connection(connection, fast=fast, timeout=timeout, verbose=verbose)
+                    logging.error(f"connection lost, retrying after {command_name}")
+                    connection = recover_lost_connection(connection, fast=fast, timeout=timeout)
 
                 if (
                     command_name_generator.full_cycles_count >
-                    FULL_CYCLES_COUNT
+                    full_cycles
                 ):
                     command_name_generator.full_cycles_count = 0
                     break
