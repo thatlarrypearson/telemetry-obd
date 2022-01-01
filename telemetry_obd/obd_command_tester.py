@@ -131,11 +131,9 @@ def main():
 
     base_path = args['base_path']
 
-    with open(
-        (get_directory(base_path, vin)) / (get_output_file_name(vin + '-TEST')),
-        mode='w',
-        encoding='utf-8'
-    ) as out_file:
+    output_file_path = (get_directory(base_path, vin)) / (get_output_file_name(vin + '-TEST'))
+    logging.info(f"output file: {output_file_path}")
+    with open(output_file_path, mode='w', encoding='utf-8') as out_file:
         for cycle in range(cycles):
             logging.info(f"cycle {cycle} in {cycles}")
             for command_name in get_command_list():

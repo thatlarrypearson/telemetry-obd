@@ -142,11 +142,9 @@ def main():
     command_name_generator = CommandNameGenerator(config_path)
 
     while command_name_generator:
-        with open(
-            (get_directory(base_path, vin)) / (get_output_file_name(vin)),
-            mode='w',
-            encoding='utf-8'
-        ) as out_file:
+        output_file_path = (get_directory(base_path, vin)) / (get_output_file_name(vin))
+        logging.info(f"output file: {output_file_path}")
+        with open(output_file_path, mode='w', encoding='utf-8') as out_file:
             for command_name in command_name_generator:
                 logging.info(f"command_name: {command_name}")
 
