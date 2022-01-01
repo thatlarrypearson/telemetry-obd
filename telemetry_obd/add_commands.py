@@ -894,7 +894,7 @@ def cact(messages):
     if cact_bank_2_sensor_1_supported:
         cact_bank_2_sensor_1 = ureg.Quantity((d - 40), ureg.celsius)
     if cact_bank_2_sensor_2_supported:
-        cact_bank_2_sensor_2 = ureg.Quanitty((e - 40), ureg.celsius)
+        cact_bank_2_sensor_2 = ureg.Quantity((e - 40), ureg.celsius)
 
     return [
         cact_bank_1_sensor_1_supported,
