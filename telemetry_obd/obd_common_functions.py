@@ -22,6 +22,25 @@ local_commands = {
     new_command.name: new_command for new_command in NEW_COMMANDS
 }
 
+OBD_ERROR_MESSAGES = {
+    "ACT ALERT": "OBD adapter switching to low power mode in 1 minute.",
+    "BUFFER FULL": "Incoming OBD message buffer overflow.",
+    "BUS BUSY": "Send timeout occurred before bus became idle.",
+    "BUS ERROR": "Potential OBD adapter to vehicle OBD interface circuit problem.",
+    "CAN ERROR": "OBD adapter having trouble transmitting or receiving messages",
+    ">DATA ERROR": "CRC/checksum error.",
+    "DATA ERROR": "Data formating error.",
+    "FB ERROR": "Feedback error.  Circuit problem?",
+    "FC RX TIMEOUT": "Timeout error.  Circuit problem?",
+    "LP ALERT": "Low power alert.  Standby mode in 2 seconds.",
+    "LV RESET": "Low voltage reset.  Vehicle power brownout condition?",
+    "NO DATA": "No vehicle response before read timeout.  Command not supported?",
+    "OUT OF MEMORY": "Not enough RAM in adapter to complete operation.",
+    "RX ERROR": "Received message garbled.  Incorrect baud rate?",
+    "STOPPED": "Adapter received character on UART interrupting current OBD command.",
+    "UART RX OVERFLOW": "UART receive buffer overflow.",
+    "UNABLE TO CONNECT": "OBD adapter unable to detect supported vehicle OBD protocol.",
+}
 
 class CommandNameGenerator():
     """Iterator for providing a never ending list of OBD commands."""
@@ -184,8 +203,7 @@ def clean_obd_query_response(command_name:str, obd_response):
     - is_null() True to "no response"
     - tuples to lists
     - bytearrays to strings
-    - "NO DATA" to "no response"
-    - "CAN ERROR" to "no response"
+    - "NO DATA", "CAN ERROR", etc. to "no response"
     - None to "no response"
     - BitArray to list of True/False values
     - Status to serialized version of Status
@@ -194,35 +212,37 @@ def clean_obd_query_response(command_name:str, obd_response):
     if not obd_response:
         return None
 
-    if (obd_response.is_null() or
-        obd_response.value is None or (
-        isinstance(obd_response.value, str) and "NO DATA" in obd_response.value )):
-        obd_response_value = "no response"
-    elif isinstance(obd_response.value, str) and "CAN ERROR" in obd_response.value:
-        logging.error(f"command_name: {command_name}: response \"CAN ERROR\"")
-        obd_response_value = "no response"
-    elif isinstance(obd_response.value, bytearray):
-        obd_response_value = obd_response.value.decode("utf-8")
-    elif isinstance(obd_response.value, BitArray):
-        obd_response_value = []
-        for b in obd_response.value:
-            obd_response_value.append(b)
-    elif isinstance(obd_response.value, Status):
-        obd_response_value = []
-        for base_test in BASE_TESTS:
-            obd_response_value.append(str(obd_response.value.__dict__[base_test]))
-    elif isinstance(obd_response.value, ureg.Quantity):
-        obd_response_value = str(obd_response.value)
-    elif 'Quantity' in obd_response.value.__class__.__name__:
-        obd_response_value = str(obd_response.value)
-    elif isinstance(obd_response.value, list):
-        obd_response_value = list_cleaner(command_name, obd_response.value)
-    elif isinstance(obd_response.value, tuple):
-        obd_response_value = tuple_to_list_converter(obd_response.value)
-    else:
-        obd_response_value = obd_response.value
+    if obd_response.is_null() or obd_response.value is None:
+        return "no response"
 
-    return obd_response_value
+    if isinstance(obd_response.value, str):
+        for obd_error_message, obd_error_description in OBD_ERROR_MESSAGES.items():
+            if obd_error_message in obd_response.value:
+                logging.error(f"command_name: {command_name}: OBD adapter error: \"{obd_error_message}\": {obd_error_description}")
+                return "no response"
+
+    if isinstance(obd_response.value, bytearray):
+        return obd_response.value.decode("utf-8")
+
+    if isinstance(obd_response.value, BitArray):
+        return list(obd_response.value)
+
+    if isinstance(obd_response.value, Status):
+        return [
+            str(obd_response.value.__dict__[base_test])
+            for base_test in BASE_TESTS
+        ]
+
+    if isinstance(obd_response.value, ureg.Quantity) or 'Quantity' in obd_response.value.__class__.__name__:
+        return str(obd_response.value)
+
+    if isinstance(obd_response.value, list):
+        return list_cleaner(command_name, obd_response.value)
+
+    if isinstance(obd_response.value, tuple):
+        return tuple_to_list_converter(obd_response.value)
+
+    return obd_response.value
 
 def get_obd_connection(fast:bool, timeout:float)->obd.OBD:
     """
