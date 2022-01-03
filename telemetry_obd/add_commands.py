@@ -2403,7 +2403,7 @@ NEW_COMMANDS = [
     OBDCommand("DEF_SENSOR", "Diesel Exhaust Fluid Sensor Output", b'019B', 6, def_sensor, ECU.ALL, True),
     OBDCommand("O2_SENSOR_WIDE_RANGE", "O2 Sensor (Wide Range)", b'019C', 19, o2_sensor_wide_range, ECU.ENGINE, True),
     OBDCommand("FUEL_RATE_2", "Fuel rate 2", b"019D", 6, fuel_rate_2, ECU.ENGINE, True),
-    OBDCommand("ENGINE_EXHAUST_FLOW_RATE", "Engine exhaust flow rate", b"019E", 2, exhaust_flow_rate, ECU.ENGINE, True),
+    OBDCommand("ENGINE_EXHAUST_FLOW_RATE", "Engine exhaust flow rate", b"019E", 4, exhaust_flow_rate, ECU.ENGINE, True),
     OBDCommand("FUEL_SYSTEM", "Fuel System Percentage Use", b'019F', 11, fuel_system, ECU.ALL, True),
 
     OBDCommand("PIDS_F", "PIDs supported [A1 - C0]", b"01A0", 6, pid, ECU.ENGINE, True),
