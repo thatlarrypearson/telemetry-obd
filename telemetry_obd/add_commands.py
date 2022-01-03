@@ -714,9 +714,9 @@ def vg_turbo_control(messages):
     if vgt_b_position_supported:
         vgt_b_position = (e * 100.0 / 255.0) * ureg.percent
     if vgt_a_control_status_supported:
-        vgt_a_control_status = VGT_CONTROL_STATUS(f & ((1 << 1) +  1))
+        vgt_a_control_status = VGT_CONTROL_STATUS[f & ((1 << 1) +  1)]
     if vgt_b_control_status_supported:
-        vgt_b_control_status = VGT_CONTROL_STATUS((f >> 2) & ((1 << 1) +  1))
+        vgt_b_control_status = VGT_CONTROL_STATUS[(f >> 2) & ((1 << 1) +  1)]
 
     return [
         commanded_vgt_a_position_supported,
