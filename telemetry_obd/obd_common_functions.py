@@ -215,10 +215,11 @@ def clean_obd_query_response(command_name:str, obd_response):
     if obd_response.is_null() or obd_response.value is None:
         return "no response"
 
-    if isinstance(obd_response.value, str):
+    for message in obd_response.messages:
         for obd_error_message, obd_error_description in OBD_ERROR_MESSAGES.items():
-            if obd_error_message in obd_response.value:
-                logging.error(f"command_name: {command_name}: OBD adapter error: \"{obd_error_message}\": {obd_error_description}")
+            raw_message = message.raw()
+            if obd_error_message in raw_message:
+                logging.error(f"command_name: {command_name}: OBD adapter message error: \"{obd_error_message}\": {obd_error_description}")
                 return "no response"
 
     if isinstance(obd_response.value, bytearray):
