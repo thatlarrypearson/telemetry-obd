@@ -210,9 +210,11 @@ def clean_obd_query_response(command_name:str, obd_response):
     - pint Quantity object serialized by pint.
     """
     if not obd_response:
+        logging.debug(f"command_name {command_name}: obd_response is None")
         return None
 
     if obd_response.is_null() or obd_response.value is None:
+        logging.debug(f"command_name {command_name}: obd_response.is_null or obd_response.value is None")
         return "no response"
 
     for message in obd_response.messages:
