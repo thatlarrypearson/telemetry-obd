@@ -471,11 +471,30 @@ ${APP_PYTHON} -m telemetry_obd.obd_logger \
 	"${APP_BASE_PATH}"
 ```
 
+## Date/Time Accuracy During Data Collection
+
+After the power has been off, an unmodified Raspberry Pi will do one of the following to determine the time it starts up with:
+
+* starts up with the time value stored on disk
+* goes out to the Internet to a Network Time Protocol (NTP) server to get the current time
+
+While the Raspberry Pi runs, time updates as expected in its built-in clock and it periodically saves the current time value to disk.  Because the built-in clock only works while the power is on, when the power goes off, the clock stops working.  When power comes back on, the clock starts up from zero time.  During the boot process, the clock gets updated from the disk and later, after the network starts up, an NTP server.  No network, no time update.
+
+Each bit of data collected is collected with timestamps.  Data and log file names have embedded timestamps in them.  When the clock is hours or even weeks behind the actual time, data analysis becomes more difficult as it is hard to connect OBD data with driver activity such as stops for fuel or stops at destinations.
+
+One solution to consider is to always provide the Raspberry Pi with Internet access, especially during the boot process.  For example, mobile phones (with the correct carrier plan) support mobile WIFI hotspot capability.  In iPhone settings, this shows up in the **Settings** app as **Personal Hotspot**.
+
+On my iPhone, the **Personal Hotspot** times out and goes to sleep when no devices are connected to it.  Before starting the vehicle, I disable the hotspot and reenable it through the iPhone **Settings** app.  This approach worked flawlessly on a two day, 1,000 mile trip with seven fuel stops, one overnight stop and several random health stops.
+
+Running Raspberry Pi's in headless mode requires WIFI to be configured in advance.  For example, I put each of my iPhones and my tablet into mobile hotspot mode and then configured the Raspberry Pi to automatically connect to them at home before leaving.
+
+Another solution is to use add a GPS receiver to the Raspberry Pi to add [Stratum-1 NTP Server](https://www.satsignal.eu/ntp/Raspberry-Pi-NTP.html) capability to the Raspberry Pi.  This option is currently under active investigation.  The primary advantage is it works in remote environments were mobile wireless signals are unavailable.  It also requires less work on behalf of the vehicle operator.
+
 ## Running Raspberry Pi In Vehicle
 
 Getting the Raspberry Pi and OBD interface to work reliably in running vehicles turned out to be problematic.  The initial setup used a USB OBD interface.  The thinking was that a hard wired USB connection between the Raspberry Pi and the ODB interface would be simpler and more reliable.  On the 2013 Jeep Wrangler Rubicon, this was true.  The 110 VAC power adapter was plugged into the Jeep's 110 VAC outlet.
 
-However, both the 2017 Ford F-450 Truck and 2019 Ford EcoSport SUV wouldn't power the Raspberry Pi if it was connected via USB to an OBD interface.  It didn't matter if the Pi was plugged into 12 VDC or 110 VAC  outlets.  It wasn't until a 600 Watt Sine Wave Inverter was used to power the Raspberry Pi that the underlying problem became clear.  The inverter has [GFCI](https://www.bobvila.com/articles/gfci-outlets/#:~:text=A%20GFCI%20outlet%20contains%20a,of%20electricity%20in%20the%20outlet) circuitry that tripped soon after the Raspberry Pi started communicating through USB to the OBD interface.  There wasn't adequate electrical isolation between the vehicle OBD port and the Raspberry Pi.
+However, both the 2017 Ford F-450 Truck and 2019 Ford EcoSport SUV wouldn't power the Raspberry Pi if it was connected via USB to an OBD interface.  It didn't matter if the Pi was plugged into 12 VDC or 110 VAC  outlets.  It wasn't until a 600 Watt Sine Wave Inverter was used to power the Raspberry Pi that the underlying problem became clear.  The inverter has [GFCI](https://www.bobvila.com/articles/gfci-outlets/) circuitry that tripped soon after the Raspberry Pi started communicating through USB to the OBD interface.  There wasn't adequate electrical isolation between the vehicle OBD port and the Raspberry Pi.
 
 Given that electrical isolation was an issue, it became clear that wireless connection between components would be necessary.  This is why Bluetooth became the preferred solution.
 
@@ -487,6 +506,7 @@ Depending on the power supply powering the Raspberry Pi, there may also be issue
 
 Before turning on the ignition:
 
+* (Optional) Enable mobile hotspot
 * Plug OBD extension cord into vehicle OBD port.
 * Plug Bluetooth ELM 327 OBD interface into OBD extension cord.
 * Turn on vehicle ignition and start the vehicle.
@@ -494,7 +514,7 @@ Before turning on the ignition:
 After vehicle is running:
 
 * Connect Bluetooth enabled Raspberry Pi to power.
-* Watch Bluetooth ELM 327 OBD interface lights to ensure that the Raspberry Pi is interacting with the interface within one minute.  No lights flashing indicates a failure.
+* Watch Bluetooth ELM 327 OBD interface lights to ensure that the Raspberry Pi is interacting with the interface within a minute or two.  No flashing lights indicates failure.
 
 Before turning off the vehicle:
 
