@@ -339,6 +339,9 @@ git clone https://github.com/thatlarrypearson/telemetry-obd.git
 cd telemetry-obd
 python3.8 -m build
 python3.8 -m pip install --user dist/telemetry_obd-0.2-py3-none-any.whl
+
+# make shell programs executable
+chmod 0755 bin/*.sh
 ```
 
 On Windows 10, connecting to USB or Bluetooth ELM 327 OBD interfaces is simple.  Plug in the USB and it works.  Pair the Bluetooth ELM 327 OBD interface and it works.  Linux and Raspberry Pi systems are a bit more challenging.
@@ -444,7 +447,15 @@ runuser -u "${OBD_USER}" -g dialout "${OBD_HOME}/telemetry-obd/bin/obd_logger.sh
 exit 0
 ```
 
-The ```runuser``` command in "```/etc/rc.local```" file runs the "```obd_logger.sh```" ```bash``` shell program as user "```human```" and group "```dialout```".  The ```obd_logger.sh``` shell program is as follows:
+In the above ```/etc/rc.local``` example, the line ```for BT_MAC_ADDR in "00:04:3E:5D:00:00" "00:19:5D:26:00:00"``` must be modified to match your Bluetooth OBD dongles.  ```BT_MAC_ADDR``` stands for Bluetooth Media Access Control Address.  This address, like an Internet address, must match your current configuration.  Assuming your Bluetooth OBD adapter is currently paired to your Raspberry Pi, click on the Bluetooth icon on your Raspberry Pi desktop and select the ```Devices``` option.
+
+![RaspberryPi Bluetooth GUI Utility Devices Dialog](docs/BT-connections.png)
+
+The yellow arrow points to where the Bluetooth MAC address is found on the ```Devices``` dialog box.
+
+The ```runuser``` command in "```/etc/rc.local```" file runs the "```obd_logger.sh```" ```bash``` shell program as user "```human```" and group "```dialout```".  Make sure both ```obd_logger.sh``` and ```obd_tester.sh``` are executable by using the command ```chmod +x obd_logger.sh obd_tester.sh```.
+
+The ```obd_logger.sh``` shell program is as follows:
 
 ```bash
 # obd_logger.sh
