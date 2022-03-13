@@ -149,7 +149,7 @@ def main():
                 logging.info(f"command_name: {command_name}")
 
                 if '-' in command_name:
-                    logging.error("skipping malformed command_name: {command_name}")
+                    logging.error(f"skipping malformed command_name: {command_name}")
                     continue
                     
                 iso_format_pre = datetime.isoformat(
