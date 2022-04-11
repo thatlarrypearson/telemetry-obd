@@ -333,7 +333,7 @@ python3.8 -m pip install --user obd
 git clone https://github.com/brendan-w/python-OBD.git
 cd python-OBD
 python3.8 -m build
-python3.8 -m pip install --user dist/dist/obd-0.7.1-py3-none-any.whl
+python3.8 -m pip install --user dist/obd-0.7.1-py3-none-any.whl
 ```
 
 Install this software:
