@@ -284,7 +284,12 @@ Go to the [Python Downloads](https://www.python.org/downloads/source/) page.  Fi
 sudo apt-get update
 sudo apt-get upgrade -y
 sudo apt-get install -y build-essential checkinstall
+
+# Raspberry Pi OS versions before Bullseye
 sudo apt-get install -y libreadline-gplv2-dev libncursesw5-dev libssl-dev
+# Raspberry Pi OS version Bullseye
+sudo apt-get install -y libreadline-dev libncursesw5-dev libssl-dev
+
 sudo apt-get install -y libsqlite3-dev tk-dev libgdbm-dev libc6-dev libbz2-dev libffi-dev zlib1g-dev
 ```
 
