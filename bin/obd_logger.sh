@@ -5,6 +5,9 @@
 # Need time for the system to startup the Bluetooth connection
 export STARTUP_DELAY=10
 
+# Need time for system/vehicle OBD interface recover after failure
+export RESTART_DELARY=60
+
 export APP_HOME="/home/$(whoami)/telemetry-obd"
 export APP_CONFIG_DIR="${APP_HOME}/config"
 export APP_TMP_DIR="${APP_HOME}/tmp"
@@ -54,14 +57,19 @@ then
 	sleep "${COMMAND_TESTER_DELAY}"
 fi
 
-${APP_PYTHON} -m telemetry_obd.obd_logger \
-	--config_file "${APP_CONFIG_FILE}" \
-	--config_dir "${APP_CONFIG_DIR}" \
-	--full_cycles "${APP_FULL_CYCLES}" \
-	"${APP_BASE_PATH}" \
-	>> "${APP_TMP_DIR}/${APP_LOG_FILE}" 2>&1
+while date >> "${APP_TMP_DIR}/${APP_LOG_FILE}" 2>&1
+do
+	${APP_PYTHON} -m telemetry_obd.obd_logger \
+		--config_file "${APP_CONFIG_FILE}" \
+		--config_dir "${APP_CONFIG_DIR}" \
+		--full_cycles "${APP_FULL_CYCLES}" \
+		"${APP_BASE_PATH}" \
+		>> "${APP_TMP_DIR}/${APP_LOG_FILE}" 2>&1
 
-export RtnVal="$?"
-echo >> "${APP_TMP_DIR}/${APP_LOG_FILE}" 2>&1
-echo obd_logger returns "${RtnVal}" >> "${APP_TMP_DIR}/${APP_LOG_FILE}" 2>&1
-date '+%Y%m%d%H%M%S' >> "${APP_TMP_DIR}/${APP_LOG_FILE}" 2>&1
+	export RtnVal="$?"
+	echo >> "${APP_TMP_DIR}/${APP_LOG_FILE}" 2>&1
+	echo obd_logger returns "${RtnVal}" >> "${APP_TMP_DIR}/${APP_LOG_FILE}" 2>&1
+	date >> "${APP_TMP_DIR}/${APP_LOG_FILE}" 2>&1
+
+	sleep "${RESTART_DELAY}"
+done
