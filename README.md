@@ -334,6 +334,7 @@ git clone https://github.com/brendan-w/python-OBD.git
 cd python-OBD
 python3.8 -m build
 python3.8 -m pip install --user dist/obd-0.7.1-py3-none-any.whl
+cd
 ```
 
 Install this software:
@@ -347,6 +348,7 @@ python3.8 -m pip install --user dist/telemetry_obd-0.2-py3-none-any.whl
 
 # make shell programs executable
 chmod 0755 bin/*.sh
+cd
 ```
 
 On Windows 10, connecting to USB or Bluetooth ELM 327 OBD interfaces is simple.  Plug in the USB and it works.  Pair the Bluetooth ELM 327 OBD interface and it works.  Linux and Raspberry Pi systems are a bit more challenging.
