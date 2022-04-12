@@ -462,6 +462,8 @@ When there appears to be an issue with how ```/etc/rc.local``` is executing, all
 sudo touch /root/rc.local
 ```
 
+Be sure to change ```human``` in  ```OBD_USER=human``` above to your username.
+
 In the above ```/etc/rc.local``` example, the line ```for BT_MAC_ADDR in "00:04:3E:5D:00:00" "00:19:5D:26:00:00"``` must be modified to match your Bluetooth OBD dongles.  ```BT_MAC_ADDR``` stands for Bluetooth Media Access Control Address.  This address, like an Internet address, must match your current configuration.  Assuming your Bluetooth OBD adapter is currently paired to your Raspberry Pi, click on the Bluetooth icon on your Raspberry Pi desktop and select the ```Devices``` option.
 
 ![RaspberryPi Bluetooth GUI Utility Devices Dialog](docs/BT-connections.png)
