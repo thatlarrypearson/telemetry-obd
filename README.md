@@ -250,6 +250,7 @@ Install the Bluetooth support software and then reboot the system:
 ```bash
 # Bluetooth support software
 sudo apt-get install -y bluetooth bluez bluez-tools blueman bluez-hcidump
+# Bluetooth support software requires reboot to become activated
 sudo shutdown -r now
 ```
 
