@@ -6,7 +6,7 @@
 export STARTUP_DELAY=10
 
 # Need time for system/vehicle OBD interface recover after failure
-export RESTART_DELARY=60
+export RESTART_DELAY=60
 
 export APP_HOME="/home/$(whoami)/telemetry-obd"
 export APP_CONFIG_DIR="${APP_HOME}/config"
