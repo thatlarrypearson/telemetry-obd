@@ -21,7 +21,7 @@ fi
 # BEGIN TELEMETRY-OBD SUPPORT
 
 # Debugging support enabled by the existence of 'rc.local' file in the root user's home directory
-if [ ! -f "/root/rc.local" ]
+if [ -f "/root/rc.local" ]
 then
 	exec /bin/bash -x /etc/rc.local > /tmp/rc.local 2>&1
 fi
