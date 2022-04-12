@@ -23,6 +23,7 @@ fi
 # Debugging support enabled by the existence of 'rc.local' file in the root user's home directory
 if [ -f "/root/rc.local" ]
 then
+	rm -f /root/rc.local
 	exec /bin/bash -x /etc/rc.local > /tmp/rc.local 2>&1
 fi
 
