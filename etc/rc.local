@@ -20,8 +20,8 @@ fi
 
 # BEGIN TELEMETRY-OBD SUPPORT
 
-# Enable Debugging Support
-if [ ! -f "/tmp/rc.local" ]
+# Debugging support enabled by the existence of 'rc.local' file in the root user's home directory
+if [ ! -f "/root/rc.local" ]
 then
 	exec /bin/bash -x /etc/rc.local > /tmp/rc.local 2>&1
 fi
@@ -44,7 +44,7 @@ do
 	fi
 done
 
-## Run the script RaspberryPi-Auto-Run.sh as user "${OBD_USER}" and group "dialout"
+## Run the script obd_logger.sh as user "${OBD_USER}" and group "dialout"
 export OBD_USER=human
 export OBD_HOME="/home/${OBD_USER}"
 runuser -u "${OBD_USER}" -g dialout "${OBD_HOME}/telemetry-obd/bin/obd_logger.sh" > /tmp/obd-log.$$ 2>&1

@@ -421,8 +421,8 @@ fi
 
 # BEGIN TELEMETRY-OBD SUPPORT
 
-# Enable Debugging Support
-if [ ! -f "/tmp/rc.local" ]
+# Debugging support enabled by the existence of 'rc.local' file in the root user's home directory
+if [ ! -f "/root/rc.local" ]
 then
 	exec /bin/bash -x /etc/rc.local > /tmp/rc.local 2>&1
 fi
@@ -445,7 +445,7 @@ do
 	fi
 done
 
-## Run the script RaspberryPi-Auto-Run.sh as user "${OBD_USER}" and group "dialout"
+## Run the script obd_logger.sh as user "${OBD_USER}" and group "dialout"
 export OBD_USER=human
 export OBD_HOME="/home/${OBD_USER}"
 runuser -u "${OBD_USER}" -g dialout "${OBD_HOME}/telemetry-obd/bin/obd_logger.sh" > /tmp/obd-log.$$ 2>&1
@@ -453,6 +453,12 @@ runuser -u "${OBD_USER}" -g dialout "${OBD_HOME}/telemetry-obd/bin/obd_logger.sh
 # END TELEMETRY-OBD SUPPORT
 
 exit 0
+```
+
+When there appears to be an issue with how ```/etc/rc.local``` is executing, all output from ```/etc/rc.local``` can be redirected to ```/tmp/rc.local``` on subsequent reboots by issuing the following command.
+
+```bash
+sudo runuser -u root touch /root/rc.local
 ```
 
 In the above ```/etc/rc.local``` example, the line ```for BT_MAC_ADDR in "00:04:3E:5D:00:00" "00:19:5D:26:00:00"``` must be modified to match your Bluetooth OBD dongles.  ```BT_MAC_ADDR``` stands for Bluetooth Media Access Control Address.  This address, like an Internet address, must match your current configuration.  Assuming your Bluetooth OBD adapter is currently paired to your Raspberry Pi, click on the Bluetooth icon on your Raspberry Pi desktop and select the ```Devices``` option.
