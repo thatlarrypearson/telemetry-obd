@@ -357,7 +357,7 @@ On Linux/Raspberry Pi based systems, USB ELM 327 based OBD interfaces present as
 
 ```bash
 # add current user to group dialout
-adduser $(whoami) dialout
+sudo adduser $(whoami) dialout
 ```
 
 On Linux/Raspberry Pi, Bluetooth serial device creation is not automatic.  After Bluetooth ELM 327 OBD interface has been paired, ```sudo rfcomm bind rfcomm0 <BT-MAC-ADDRESS>``` will create the required serial device.   An example follows:
