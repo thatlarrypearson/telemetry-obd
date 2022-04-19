@@ -17,38 +17,9 @@ if [ "$_IP" ]; then
   printf "My IP address is %s\n" "$_IP"
 fi
 
-
 # BEGIN TELEMETRY-OBD SUPPORT
 
-# Debugging support enabled by the existence of 'rc.local' file in the root user's home directory
-if [ -f "/root/rc.local" ]
-then
-	rm -f /root/rc.local
-	exec /bin/bash -x /etc/rc.local > /tmp/rc.local 2>&1
-fi
-
-# Delay to allow Bluetooth subsystem to fully activate
-sleep 20
-
-## Bind the available paired OBDII device to /dev/rfcomm0
-## Change the Bluetooth MAC addresses in the next line to match your's
-for BT_MAC_ADDR in "00:04:3E:5D:00:00" "00:19:5D:26:00:00"
-do
-	bluetoothctl connect "${BT_MAC_ADDR}" > /tmp/btctl-connect
-	grep "Connected: yes" /tmp/btctl-connect > /dev/null
-	RtnCode="$?"
-	if [ "${RtnCode}" -eq 0 ]
-	then
-		rfcomm bind rfcomm0 "${BT_MAC_ADDR}"
-		echo "${BT_MAC_ADDR}" bound to /dev/rfcomm0
-		break
-	fi
-done
-
-## Run the script obd_logger.sh as user "${OBD_USER}" and group "dialout"
-export OBD_USER=human
-export OBD_HOME="/home/${OBD_USER}"
-runuser -u "${OBD_USER}" -g dialout "${OBD_HOME}/telemetry-obd/bin/obd_logger.sh" > /tmp/obd-log.$$ 2>&1
+/bin/nohup "/root/bin/telemetry.rc.local" &
 
 # END TELEMETRY-OBD SUPPORT
 

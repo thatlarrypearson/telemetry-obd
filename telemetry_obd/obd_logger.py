@@ -3,6 +3,7 @@
 telemetry_obd/obd_logger.py: Onboard Diagnostic Data Logger.
 """
 from sys import stdout, stderr
+from os import fsync
 from datetime import datetime, timezone
 from pathlib import Path
 from argparse import ArgumentParser
@@ -12,6 +13,7 @@ import json
 import logging
 from traceback import print_exc
 import obd
+from .__init__ import __version__
 from .obd_common_functions import (
     get_vin_from_vehicle,
     get_elm_info,
@@ -91,12 +93,21 @@ def argument_parsing()-> dict:
         default=False,
         action='store_true'
     )
+    parser.add_argument(
+        "--version",
+        help="Print version number and exit.",
+        default=False,
+        action='store_true'
+    )
     return vars(parser.parse_args())
 
 def main():
     """Run main function."""
 
     args = argument_parsing()
+
+    if args['version']:
+        print(f"Version {__version__}", file=stdout)
 
     fast = not args['no_fast']
     timeout = args['timeout']
@@ -134,10 +145,10 @@ def main():
     config_dir = args['config_dir']
     base_path = ''.join(args['base_path'])
     
-    if not config_file:
-        config_path = get_config_path(config_dir, vin)
-    else:
+    if config_file:
         config_path = Path(config_dir) / Path(config_file)
+    else:
+        config_path = get_config_path(config_dir, vin)
 
     command_name_generator = CommandNameGenerator(config_path)
 
@@ -188,6 +199,8 @@ def main():
                             'iso_ts_post': iso_format_post,
                         }) + "\n"
                 )
+                out_file.flush()
+                fsync(out_file.fileno())
 
                 if not connection.is_connected():
                     logging.error(f"connection lost, retrying after {command_name}")

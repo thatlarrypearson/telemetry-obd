@@ -37,6 +37,7 @@ optional arguments:
                         the car doesn't respond promptly or at all. When off (fast is on), commands are optimized
                         before being sent to the car. A timeout is added at the end of the command. Default is off.
   --verbose             Turn verbose output on. Default is off.
+  --version             Prints the version information and then exits.
 PS C:\Users\human\src\telemetry-obd>
 ```
 
@@ -47,6 +48,10 @@ The timeout value determines how long a read request can take between the underl
 #### ```--no_fast```
 
 ```--no_fast``` can also be used to reduce the number of ```"no response"```s but be aware of the consequences.  For commands that are not available on the vehicle being instrumented, the software may just wait forever for a response that will never come.
+
+#### ```--version```
+
+Responds with the version and exits.
 
 #### Telemetry OBD Logger Run Cycles
 
@@ -421,50 +426,83 @@ fi
 
 # BEGIN TELEMETRY-OBD SUPPORT
 
-# Debugging support enabled by the existence of 'rc.local' file in the root user's home directory
-if [ -f "/root/rc.local" ]
-then
-  rm -f /root/rc.local
-	exec /bin/bash -x /etc/rc.local > /tmp/rc.local 2>&1
-fi
-
-# Delay to allow Bluetooth subsystem to fully activate
-sleep 20
-
-## Bind the available paired OBDII device to /dev/rfcomm0
-## Change the Bluetooth MAC addresses in the next line to match your's
-for BT_MAC_ADDR in "00:04:3E:5D:00:00" "00:19:5D:26:00:00"
-do
-	bluetoothctl connect "${BT_MAC_ADDR}" > /tmp/btctl-connect
-	grep "Connected: yes" /tmp/btctl-connect > /dev/null
-	RtnCode="$?"
-	if [ "${RtnCode}" -eq 0 ]
-	then
-		rfcomm bind rfcomm0 "${BT_MAC_ADDR}"
-		echo "${BT_MAC_ADDR}" bound to /dev/rfcomm0
-		break
-	fi
-done
-
-## Run the script obd_logger.sh as user "${OBD_USER}" and group "dialout"
-export OBD_USER=human
-export OBD_HOME="/home/${OBD_USER}"
-runuser -u "${OBD_USER}" -g dialout "${OBD_HOME}/telemetry-obd/bin/obd_logger.sh" > /tmp/obd-log.$$ 2>&1
+/bin/nohup "/root/bin/telemetry.rc.local" &
 
 # END TELEMETRY-OBD SUPPORT
 
 exit 0
 ```
 
-When there appears to be an issue with how ```/etc/rc.local``` is executing, all output from ```/etc/rc.local``` can be redirected to ```/tmp/rc.local``` on subsequent reboots by issuing the following command.
+```/etc/rc.local``` invokes ```/root/bin/telemetry.rc.local```.  The functionality in ```/root/bin/telemetry.rc.local``` is not placed in ```/etc/rc.local``` for these reasons:
+
+* Latest Rasberry Pi OS (```Bullseye```) invokes /etc/rc.local with ```/bin/sh``` (soft link to ```/bin/dash```) which is not the same as ```/usr/bin/bash```, the required shell.
+* ```/bin/sh``` is invoked with ```-e``` flag meaning that ```/etc/rc.local``` will stop execution when a pipe fails.  See [bash documentation](https://www.gnu.org/software/bash/manual/bash.pdf).
+* The command ```bluetoothctl```, required to automatically detect and connect to the correct Bluetooth device, generates a pip failure fault when run in ```/etc/rc.local```.  It will run fine as ```root``` in the terminal.
+
+### ```/root/bin/telemetry.rc.local```
+
+```/root/bin/telemetry.rc.local``` must be run as root.  Once the Bluetooth subsystem is configured correctly, it invokes ```bin/obd_logger.sh``` provided in this distribution.
+
+Shell variables, like ```OBD_USER``` must be changed in ```/root/bin/telemetry.rc.local``` to match the target system.  The line ```for BT_MAC_ADDR in "00:04:3E:5A:A7:67" "00:19:5D:26:4B:5F"``` must also be changed.  the Bluetooth Media Access Control layer addresses (```"00:04:3E:5A:A7:67" and "00:19:5D:26:4B:5F"```) will need changing to match the target Bluetooth OBD dongle devices.  This address, like an Internet address, must match your current configuration.  Assuming your Bluetooth OBD adapter is currently paired to your Raspberry Pi, click on the Bluetooth icon on your Raspberry Pi desktop and select the ```Devices``` option.
 
 ```bash
-sudo touch /root/rc.local
+#!/usr/bin/bash
+#
+# telemetry.rc.local - This script is executed by the system /etc/rc.local script on system boot
+
+export OBD_USER="human"
+export OBD_GROUP="dialout"
+export OBD_HOME="/home/${OBD_USER}"
+export DEBUG="True"
+export LOG_FILE="/tmp/telemetry-obd_$(date '+%Y-%m-%d_%H:%M:%S').log"
+
+# Debugging support
+if [ "${DEBUG}" == "True" ]
+then
+	# enable shell debug mode
+	set -x
+fi
+
+# turn off stdin
+0<&-
+
+# redirect all stdout and stderr to file
+exec &> "${LOG_FILE}"
+
+# Run until Bluetooth subsystem is activated
+export RtnCode=1
+while [ ${RtnCode} -gt 0 ]
+do
+	# Test to see if Bluetooth subsystem is up
+	hcitool scan
+	export RtnCode=$?
+
+	# Give Bluetooth subsystem more time to activate
+	sleep 20
+done
+
+## Bind the available paired OBDII device to /dev/rfcomm0
+## Change the Bluetooth MAC addresses in the next line to match your addresses
+## One or more MAC addresses matching available Bluetooth OBD devices are required
+## The following tries MAC addresses until a working one is found
+for BT_MAC_ADDR in "00:04:3E:5A:A7:67" "00:19:5D:26:4B:5F"
+do
+        bluetoothctl connect "${BT_MAC_ADDR}" > /tmp/btctl-connect
+        grep "Connected: yes" /tmp/btctl-connect
+        RtnCode="$?"
+
+        if [ "${RtnCode}" -eq 0 ]
+        then
+                rfcomm bind rfcomm0 "${BT_MAC_ADDR}"
+                break
+        fi
+done
+
+## Run the script obd_logger.sh as user "${OBD_USER}" and group "${OBD_GROUP}"
+runuser -u "${OBD_USER}" -g dialout "${OBD_HOME}/telemetry-obd/bin/obd_logger.sh" &
+
+exit 0
 ```
-
-Be sure to change ```human``` in  ```OBD_USER=human``` above to your username.
-
-In the above ```/etc/rc.local``` example, the line ```for BT_MAC_ADDR in "00:04:3E:5D:00:00" "00:19:5D:26:00:00"``` must be modified to match your Bluetooth OBD dongles.  ```BT_MAC_ADDR``` stands for Bluetooth Media Access Control Address.  This address, like an Internet address, must match your current configuration.  Assuming your Bluetooth OBD adapter is currently paired to your Raspberry Pi, click on the Bluetooth icon on your Raspberry Pi desktop and select the ```Devices``` option.
 
 ![RaspberryPi Bluetooth GUI Utility Devices Dialog](docs/BT-connections.png)
 
@@ -475,6 +513,7 @@ The ```runuser``` command in "```/etc/rc.local```" file runs the "```obd_logger.
 The ```obd_logger.sh``` shell program is as follows:
 
 ```bash
+#!/usr/bin/bash
 # obd_logger.sh
 #
 # Runs OBD Logger
@@ -483,20 +522,36 @@ The ```obd_logger.sh``` shell program is as follows:
 export STARTUP_DELAY=10
 
 # Need time for system/vehicle OBD interface recover after failure
-export RESTART_DELARY=60
+export RESTART_DELAY=60
 
 export APP_HOME="/home/$(whoami)/telemetry-obd"
 export APP_CONFIG_DIR="${APP_HOME}/config"
 export APP_TMP_DIR="${APP_HOME}/tmp"
 export APP_BASE_PATH="${APP_HOME}/data"
-export APP_LOG_FILE="telemetry-$(date '+%Y%m%d%H%M%S').log"
+export APP_LOG_FILE="telemetry-$(date '+%Y-%m-%d %H_%M_%S').log"
 export APP_FULL_CYCLES=1000
 export APP_TEST_CYCLES=5
 export APP_PYTHON=python3.8
+export DEBUG="True"
 
 # Run Command Tester one time if following file exists
 export COMMAND_TESTER="${APP_HOME}/RunCommandTester"
 export COMMAND_TESTER_DELAY=60
+
+# Debugging support
+if [ "${DEBUG}" == "True" ]
+then
+	# enable shell debug mode
+	set -x
+fi
+
+# turn off stdin
+0<&-
+
+# redirect all stdout and stderr to file
+exec &> "${APP_TMP_DIR}/${APP_LOG_FILE}"
+
+date '+%Y/%m/%d %H:%M:%S'
 
 if [ ! -d "${APP_BASE_PATH}" ]
 then
@@ -522,31 +577,27 @@ then
 	${APP_PYTHON} -m telemetry_obd.obd_command_tester \
 		--cycle "${APP_TEST_CYCLES}" \
 		--base_path "${APP_BASE_PATH}" \
-		--verbose --logging \
-		>> "${APP_TMP_DIR}/${APP_LOG_FILE}" 2>&1
+		--verbose --logging
 
 	export RtnVal="$?"
-	echo >> "${APP_TMP_DIR}/${APP_LOG_FILE}" 2>&1
-	echo obd_command_tester returns "${RtnVal}" >> "${APP_TMP_DIR}/${APP_LOG_FILE}" 2>&1
-	date '+%Y%m%d%H%M%S' >> "${APP_TMP_DIR}/${APP_LOG_FILE}" 2>&1
+	echo obd_command_tester returns "${RtnVal}"
+	date '+%Y/%m/%d %H:%M:%S'
 
 	rm -f "${COMMAND_TESTER}"
 	sleep "${COMMAND_TESTER_DELAY}"
 fi
 
-while date >> "${APP_TMP_DIR}/${APP_LOG_FILE}" 2>&1
+while date '+%Y/%m/%d %H:%M:%S'
 do
 	${APP_PYTHON} -m telemetry_obd.obd_logger \
 		--config_file "${APP_CONFIG_FILE}" \
 		--config_dir "${APP_CONFIG_DIR}" \
 		--full_cycles "${APP_FULL_CYCLES}" \
-		"${APP_BASE_PATH}" \
-		>> "${APP_TMP_DIR}/${APP_LOG_FILE}" 2>&1
+		"${APP_BASE_PATH}"
 
 	export RtnVal="$?"
-	echo >> "${APP_TMP_DIR}/${APP_LOG_FILE}" 2>&1
-	echo obd_logger returns "${RtnVal}" >> "${APP_TMP_DIR}/${APP_LOG_FILE}" 2>&1
-	date >> "${APP_TMP_DIR}/${APP_LOG_FILE}" 2>&1
+	echo obd_logger returns "${RtnVal}"
+	date '+%Y/%m/%d %H:%M:%S'
 
 	sleep "${RESTART_DELAY}"
 done
