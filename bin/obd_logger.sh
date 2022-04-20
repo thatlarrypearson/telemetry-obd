@@ -30,6 +30,11 @@ then
 	set -x
 fi
 
+if [ ! -d "${APP_TMP_DIR}" ]
+then
+	mkdir --parents "${APP_TMP_DIR}"
+fi
+
 # turn off stdin
 0<&-
 
@@ -46,11 +51,6 @@ fi
 if [ ! -d "${APP_CONFIG_DIR}" ]
 then
 	mkdir --parents "${APP_CONFIG_DIR}"
-fi
-
-if [ ! -d "${APP_TMP_DIR}" ]
-then
-	mkdir --parents "${APP_TMP_DIR}"
 fi
 
 cd "${APP_HOME}"
