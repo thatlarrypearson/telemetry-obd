@@ -305,7 +305,7 @@ Install this software:
 git clone https://github.com/thatlarrypearson/telemetry-obd.git
 cd telemetry-obd
 python3.10 -m build
-python3.10 -m pip install --user dist/telemetry_obd-0.3.0-py3-none-any.whl
+python3.10 -m pip install --user dist/telemetry_obd-0.3.2-py3-none-any.whl
 
 # make shell programs executable
 chmod 0755 bin/*.sh
@@ -337,7 +337,7 @@ sudo rfcomm bind rfcomm0 00:00:00:33:33:33
 
 Realize that before the above can work, the Bluetooth device must have already been paired with the Raspberry Pi.  One easy way to pair is to use the Pi's GUI to access the Bluetooth.  Look for the Bluetooth emblem on the top panel above the cursor.
 
-![RaspberryPi Bluetooth GUI Utility](docs/README-rpi-gui-bt.png)
+![RaspberryPi Bluetooth GUI Utility](docs/README-rpi-gui-bt.jpg)
 
 On Linux/Raspberry Pi systems, the ```rfcomm``` command creates the device ```/dev/rfcomm0``` as a serial device owned by  ```root``` and group ```dialout```.  If multiple Bluetooth serial devices are paired and bound to ```/dev/rfcomm0```, ```/dev/rfcomm1```, ```/dev/rfcomm2``` and so on, OBD Logger will only automatically connect to the first device.  The code can be modified to resolve this limitation.
 
@@ -346,11 +346,11 @@ Regardless of connection type (USB or Bluetooth) to an ELM 327 OBD interface, th
 Users need to be added to the group ```dialout```.  Assuming the user's username is ```human```:
 
 ```bash
-human@telemetry-1:~ $ ls -l /dev/ttyUSB0
+human@hostname:~ $ ls -l /dev/ttyUSB0
 crw-rw---- 1 root dialout 188, 0 Aug 13 15:47 /dev/ttyUSB0
-human@telemetry-1:~ $ ls -l /dev/rfcomm0
+human@hostname:~ $ ls -l /dev/rfcomm0
 crw-rw---- 1 root dialout 120, 0 Aug 13 15:47 /dev/rfcomm0
-human@telemetry-1:~ $ sudo adduser human dialout
+human@hostname:~ $ sudo adduser human dialout
 ```
 
 ## Headless Operation On Raspberry Pi
@@ -394,7 +394,7 @@ exit 0
 
 * Latest Rasberry Pi OS (```Bullseye```) invokes /etc/rc.local with ```/bin/sh``` (soft link to ```/bin/dash```) which is not the same as ```/usr/bin/bash```, the required shell.
 * ```/bin/sh``` is invoked with ```-e``` flag meaning that ```/etc/rc.local``` will stop execution when a pipe fails.  See [bash documentation](https://www.gnu.org/software/bash/manual/bash.pdf).
-* The command ```bluetoothctl```, required to automatically detect and connect to the correct Bluetooth device, generates a pip failure fault when run in ```/etc/rc.local```.  It will run fine as ```root``` in the terminal.
+* The command ```bluetoothctl```, required to automatically detect and connect to the correct Bluetooth device, generates a pipe failure fault when run in ```/etc/rc.local```.  It will run fine as ```root``` in the terminal.
 
 ### ```/root/bin/telemetry.rc.local```
 
