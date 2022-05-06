@@ -461,7 +461,7 @@ runuser -u "${OBD_USER}" -g dialout "${OBD_HOME}/telemetry-obd/bin/obd_logger.sh
 exit 0
 ```
 
-![RaspberryPi Bluetooth GUI Utility Devices Dialog](docs/BT-connections.png)
+![RaspberryPi Bluetooth GUI Utility Devices Dialog](docs/BT-connections.jpg)
 
 The yellow arrow points to where the Bluetooth MAC address is found on the ```Devices``` dialog box.
 
