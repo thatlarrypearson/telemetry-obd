@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [metadata]
 name = "telemetry-obd"
 url = "https://github.com/thatlarrypearson/telemetry-obd"
-version = "0.3.1"
+version = "0.3.2"
 description = "Telemetry OBD Data Logger"
 long_description = "file:README.md"
 authors = [
@@ -13,14 +13,14 @@ authors = [
 ]
 license = "MIT"
 readme = "README.md"
-python = "^3.7"
+python = "3.10"
 homepage = "https://github.com/thatlarrypearson/telemetry-obd"
 repository = "https://github.com/thatlarrypearson/telemetry-obd"
 documentation = "https://github.com/thatlarrypearson/telemetry-obd"
 keywords = ["obd", "telematics", "vehicle"]
 dependencies = [
   'obd > 0.7.1',
-  'pint = 0.7.2',
+  'pint = 0.19.2',
   'rich > 10.12.0',
 ]
 

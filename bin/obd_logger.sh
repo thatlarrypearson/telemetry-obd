@@ -16,7 +16,7 @@ export APP_BASE_PATH="${APP_HOME}/data"
 export APP_LOG_FILE="telemetry-$(date '+%Y-%m-%d %H_%M_%S').log"
 export APP_FULL_CYCLES=1000
 export APP_TEST_CYCLES=5
-export APP_PYTHON=python3.8
+export APP_PYTHON=python3.10
 export DEBUG="True"
 
 # Run Command Tester one time if following file exists

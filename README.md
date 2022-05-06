@@ -4,7 +4,7 @@ The Telemetry OBD Logger captures vehicle performance data using an OBD interfac
 
 The software is designed to run on Raspberry Pi with Raspberry Pi OS (formerly known as Raspbian) installed.  Bluetooth capabilities are added to the Raspberry Pi through a USB Bluetooth adapter (BT Dongle) and installed software (Bluetooth Driver and tools).
 
-The OBD Logger software runs on Python versions 3.8 or newer.
+The OBD Logger software runs on Python versions 3.10 or newer.
 
 ![High Level System View](docs/README-HighLevelSystemView.JPG)
 
@@ -13,7 +13,7 @@ The OBD Logger software runs on Python versions 3.8 or newer.
 The Telemetry OBD Logger application command line interface (CLI) is as follows:
 
 ```bash
-PS C:\Users\human\src\telemetry-obd> python3.8 -m telemetry_obd.obd_logger  --help
+PS C:\Users\human\src\telemetry-obd> python3.10 -m telemetry_obd.obd_logger  --help
 usage:  obd_logger.py [-h] [--config_file CONFIG_FILE] [--config_dir CONFIG_DIR]
         [--full_cycles FULL_CYCLES] [--timeout TIMEOUT] [--logging] [--no_fast] [--verbose]
         [base_path]
@@ -127,7 +127,7 @@ Output data files are in a hybrid format.  Data files contain records separated 
 * ```obd_response_value```
   OBD response value returned by the vehicle.  When the OBD command gets no response, the response is ```"no response"```.  Response values are either a string like ```"no response"``` and ```"TEST_VIN_22_CHARS"``` or they are a [Pint](https://pint.readthedocs.io/en/stable/) encoded value like ```"25 degC"``` and ```"101 kilopascal"```.
 
-  Some OBD commands will respond with multiple values in a list.  The values within the list can also be Pint values.  This works just fine in JSON but the code reading these output files will need to be able to manage imbedded lists within the response values.  [Telemetry OBD Data To CSV File](https://github.com/thatlarrypearson/telemetry-obd-log-to-csv) contains two programs, ```obd_log_evaluation``` and ```obd_log_to_csv```, providing good examples of how to handle multiple return values.
+  Some OBD commands will respond with multiple values in a list.  The values within the list can also be Pint values.  This works just fine in JSON but the code reading these output files will need to be able to manage embedded lists within the response values.  [Telemetry OBD Data To CSV File](https://github.com/thatlarrypearson/telemetry-obd-log-to-csv) contains two programs, ```obd_log_evaluation``` and ```obd_log_to_csv```, providing good examples of how to handle multiple return values.
 
 * ```iso_ts_pre```
   ISO formatted timestamp taken before the OBD command was issued to the vehicle (```datetime.isoformat(datetime.now(tz=timezone.utc))```).
@@ -180,7 +180,7 @@ DEBUG:obd.elm327:read: b'OK\r\r>'
 ```Telemetry OBD Command Tester``` can be used to determine which set of OBD commands are supported by a given vehicle.
 
 ```bash
-$ python3.8 -m telemetry_obd.obd_command_tester --help
+$ python3.10 -m telemetry_obd.obd_command_tester --help
 usage: obd_command_tester.py [-h] [--base_path BASE_PATH] [--cycles CYCLES] [--timeout TIMEOUT] [--logging] [--no_fast] [--verbose]
 
 Telemetry OBD Command Tester
@@ -231,7 +231,9 @@ When creating vehicle specific configuration files, use ```obd_log_evaluation```
 
 ## Raspberry Pi System Installation
 
-Ensure that the Raspberry Pi software is completely updated to the most recent release.  One way to do this is as follows:
+The recommended Raspberry Pi system is a [Raspberry Pi 4 Model B](https://www.raspberrypi.com/products/raspberry-pi-4-model-b/) or [Raspberry Pi 400](https://www.raspberrypi.com/products/raspberry-pi-400/) with 4 GB RAM or more.  The full 64 bit release of [Raspberry Pi OS](https://www.raspberrypi.com/software/) version 11 (bullseye) or newer, including the GUI is the recommended operating system.  When choosing a [Micro-SD card](https://en.wikipedia.org/wiki/SD_card) for storage, look for Internet resources like [Best microSD Cards for Raspberry Pi & SBCs](https://bret.dk/best-raspberry-pi-micro-sd-cards/) as a guide to making an appropriate selection.  Select cards 32 GB or larger.
+
+After installing Raspberry Pi OS on a Raspberry Pi 4 computer,  update the operating system to the newest version.  One way to do this is as follows:
 
 ```bash
 # update and upgrade Linux/Raspberry Pi OS
@@ -250,6 +252,8 @@ Install useful software:
 sudo apt-get install -y git
 ```
 
+### Bluetooth Software
+
 Install the Bluetooth support software and then reboot the system:
 
 ```bash
@@ -259,89 +263,40 @@ sudo apt-get install -y bluetooth bluez bluez-tools blueman bluez-hcidump
 sudo shutdown -r now
 ```
 
-Plug in your Bluetooth USB dongle.  When purchasing USB Bluetooth devices, ensure that the device is supported by the operating system.
+### Pairing Bluetooth OBD Devices
 
-If your system has built-in Bluetooth support, it is possible that the built in Bluetooth device won't work and will need to be disabled.  This problem has been reported in Linux and Raspberry Pi online forums.
+Bluetooth OBD adapters must be *paired* and *trusted* before they can be used.  The *pairing* and *trust* process is covered in [Pairing Bluetooth OBD Devices](./docs/README-BluetoothPairing.md).
 
-At some point, the Raspberry Pi will need to pair with an OBD Interface that is compatible with the ```python-obd``` software library.  Look for Bluetooth OBD interface hardware based on ELM 327 chips at version 1.5 or greater.  Some Bluetooth OBD interfaces use different chip sets which may work fine so long as they support the ELM 327 command language.
+### Python 3.10
 
-Because an OBD emulator was available, pairing the OBD interface to the Raspberry Pi worked fine using the pairing program accessible through the Pi's GUI.  The only complaint is there isn't much time to pair.  In general, from the time the OBD interface is plugged into either the car or the emulator, there is less than 20 seconds to complete the pairing before the OBD interface turns off pairing.  It took a few times to get paired.
-
-Pairing with the OBD interface plugged into a vehicle is considerably more challenging.  OBD interface extension cords are available.  Extension cords are useful because the lights on the OBD interface can be seen.  These lights are important while trying to pair.  Lights also blink when the Pi is communicating to the OBD interface.
-
-Validate that your Raspberry Pi has at least Python version 3.8 available:
+Validate that your Raspberry Pi has Python version 3.10 available:
 
 ```bash
 # Python 3 version
 human@hostname:~$ python3 --version
 Python 3.6.9
-# Python 3.8 version
-human@hostname:~$ python3.8 --version
-Python 3.8.5
+# Python 3.10 version
+human@hostname:~$ python3.10 --version
+Python 3.10.4
 human@hostname:~$
 ```
 
-If ```Python 3.8```, isn't already installed you will need to make it from source before installing it.
+If *Python 3.10*, isn't already installed you will need to compile it from source before installing it.  Follow the [Python 3.10 Install Instructions](docs/Python310-Install.md) to download, compile and install Python 3.10.
 
-Go to the [Python Downloads](https://www.python.org/downloads/source/) page.  Find the most recent version of Python 3.8 from the list.  Currently, the latest 3.8 release is at version 3.8.12.  The build instructions below assume python3.8.12.
-
-```bash
-# install build tools
-sudo apt-get update
-sudo apt-get upgrade -y
-sudo apt-get install -y build-essential checkinstall
-
-# Raspberry Pi OS versions before Bullseye
-sudo apt-get install -y libreadline-gplv2-dev libncursesw5-dev libssl-dev
-# Raspberry Pi OS version Bullseye
-sudo apt-get install -y libreadline-dev libncursesw5-dev libssl-dev
-
-sudo apt-get install -y libsqlite3-dev tk-dev libgdbm-dev libc6-dev libbz2-dev libffi-dev zlib1g-dev
-```
-
-```bash
-# the following makes and installs python3.8 into /usr/local/bin
-# with the libraries in /usr/local/lib.
-cd
-wget https://www.python.org/ftp/python/3.8.12/Python-3.8.12.tgz
-cd /opt
-sudo tar xzf ~/Python-3.8.12.tgz
-cd Python-3.8.12
-sudo ./configure --enable-optimizations
-sudo make altinstall
-sudo make clean
-cd /opt
-sudo rm -rf Python-3.8.12
-python3.8 --version
-Python 3.8.12
-```
-
-Once you are comfortable with the Python version on your system, run the following:
+Once Python 3.10 is installed on your system, run the following:
 
 ```bash
 # Python pip Install Support
-python3.8 -m pip install --upgrade --user pip
-python3.8 -m pip install --upgrade --user wheel setuptools markdown build
+python3.10 -m pip install --upgrade --user pip
+python3.10 -m pip install --upgrade --user wheel setuptools markdown build
 ```
 
-The Python  ```pint``` package, if already installed, may be downgraded during the ```python-OBD``` installation.
+### ```python-OBD``` Package
 
-Currently, the ```python-OBD``` package may reinstall an older version (```'0.7.2'```) of ```pint```.  You can install ```python-OBD```
-from source (recommended) or through ```pip```.  Installing through ```pip``` can lead to fewer available OBD commands to chose from.
+Currently, the ```python-OBD``` package needs to be modified before installing from source code.  Detailed installation instructions (includes determining if the package needs modification and how to modify the package) are found in [```python-OBD``` Package Install](docs/python-OBD-Install.md).
 
-```bash
-# installing obd through pip - not recommended
-python3.8 -m pip install --user obd
-```
+This package *WILL FAIL* installation if ```python-OBD``` isn't installed correctly.
 
-```bash
-# Recommended: install python-OBD from source (github repository)
-git clone https://github.com/brendan-w/python-OBD.git
-cd python-OBD
-python3.8 -m build
-python3.8 -m pip install --user dist/obd-0.7.1-py3-none-any.whl
-cd
-```
 
 Install this software:
 
@@ -349,8 +304,8 @@ Install this software:
 # get latest version of this software from github repository
 git clone https://github.com/thatlarrypearson/telemetry-obd.git
 cd telemetry-obd
-python3.8 -m build
-python3.8 -m pip install --user dist/telemetry_obd-0.3.0-py3-none-any.whl
+python3.10 -m build
+python3.10 -m pip install --user dist/telemetry_obd-0.3.0-py3-none-any.whl
 
 # make shell programs executable
 chmod 0755 bin/*.sh
@@ -362,7 +317,7 @@ On Windows 10, connecting to USB or Bluetooth ELM 327 OBD interfaces is simple. 
 On Linux/Raspberry Pi based systems, USB ELM 327 based OBD interfaces present as ```tty``` devices (e.g. ```/dev/ttyUSB0```).  If software reports that the OBD interface can't be accessed, the problem may be one of permissions.  Typically, ```tty``` devices are owned by ```root``` and group is set to ```dialout```.  The user that is running the OBD data capture program must be a member of the same group (e.g. ```dialout```) as the ```tty``` device.
 
 ```bash
-# add current user to group dialout
+# add dialout group to the current user's capabilities
 sudo adduser $(whoami) dialout
 ```
 
@@ -401,6 +356,8 @@ human@telemetry-1:~ $ sudo adduser human dialout
 ## Headless Operation On Raspberry Pi
 
 In order to reliably run in an automotive environment, the OBD Logger application needs to start automatically after all preconditions are satisfied.  That is, the application must start without any user interaction.  The trigger for starting the application is powering up the Raspberry Pi system.
+
+### ```/etc/rc.local```
 
 On the Raspberry Pi, commands embedded in "```/etc/rc.local```" will be run at the end of the system startup sequence by the ```root``` user.  A sample "```/etc/rc.local```" follows:
 
@@ -531,7 +488,7 @@ export APP_BASE_PATH="${APP_HOME}/data"
 export APP_LOG_FILE="telemetry-$(date '+%Y-%m-%d %H_%M_%S').log"
 export APP_FULL_CYCLES=1000
 export APP_TEST_CYCLES=5
-export APP_PYTHON=python3.8
+export APP_PYTHON=python3.10
 export DEBUG="True"
 
 # Run Command Tester one time if following file exists
@@ -616,11 +573,13 @@ Each bit of data collected is collected with timestamps.  Data and log file name
 
 One solution to consider is to always provide the Raspberry Pi with Internet access, especially during the boot process.  For example, mobile phones (with the correct carrier plan) support mobile WIFI hotspot capability.  In iPhone settings, this shows up in the **Settings** app as **Personal Hotspot**.
 
-On my iPhone, the **Personal Hotspot** times out and goes to sleep when no devices are connected to it.  Before starting the vehicle, I disable the hotspot and reenable it through the iPhone **Settings** app.  This approach worked flawlessly on a two day, 1,000 mile trip with seven fuel stops, one overnight stop and several random health stops.
+On an iPhone, the **Personal Hotspot** times out and goes to sleep when no devices are connected to it.  Before starting the vehicle, disable the hotspot and reenable it through the iPhone **Settings** app.  This approach worked flawlessly on a two day, 1,000 mile trip with seven fuel stops, one overnight stop and several random health stops.
 
-Running Raspberry Pi's in headless mode requires WIFI to be configured in advance.  For example, I put each of my iPhones and my tablet into mobile hotspot mode and then configured the Raspberry Pi to automatically connect to them at home before leaving.
+Running Raspberry Pi's in headless mode requires WIFI to be configured in advance.  For example, put each phone or tablet into mobile hotspot mode and then configure the Raspberry Pi to automatically connect to them before using the logging system in a vehicle.
 
 Another solution is to use add a GPS receiver to the Raspberry Pi to add [Stratum-1 NTP Server](https://www.satsignal.eu/ntp/Raspberry-Pi-NTP.html) capability to the Raspberry Pi.  This option is currently under active investigation.  The primary advantage is it works in remote environments were mobile wireless signals are unavailable.  It also requires less work on behalf of the vehicle operator.
+
+Another solution is to use a Raspberry Pi GPS HAT with a built-in real-time clock.  This option is under investigation using the [Raspberry Pi UPS HAT](https://www.pishop.us/product/raspberry-pi-ups-hat/).
 
 ## Running Raspberry Pi In Vehicle
 
@@ -648,7 +607,7 @@ After vehicle is running:
 * Connect Bluetooth enabled Raspberry Pi to power.
 * Watch Bluetooth ELM 327 OBD interface lights to ensure that the Raspberry Pi is interacting with the interface within a minute or two.  No flashing lights indicates failure.
 
-Before turning off the vehicle:
+After turning off the vehicle:
 
 * Disconnect power from Raspberry Pi.
 

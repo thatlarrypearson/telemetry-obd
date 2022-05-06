@@ -3,7 +3,8 @@
 import logging
 from obd import OBDCommand, ECU
 from obd.decoders import percent, count, raw_string, pid, encoded_string
-from pint.unit import ScaleConverter, UnitDefinition
+from pint.converters import ScaleConverter
+from pint.definitions import UnitDefinition
 from obd.UnitsAndScaling import Unit as ureg
 
 logger = logging.getLogger(__name__)
