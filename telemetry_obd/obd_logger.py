@@ -27,12 +27,10 @@ from .obd_common_functions import (
     execute_obd_command,
 )
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("obd_logger")
 
 FULL_CYCLES_COUNT = 50
 TIMEOUT=1.0
-
-logger = logging.getLogger(__name__)
 
 def argument_parsing()-> dict:
     """Argument parsing"""
@@ -108,6 +106,7 @@ def main():
 
     if args['version']:
         print(f"Version {__version__}", file=stdout)
+        exit(0)
 
     fast = not args['no_fast']
     timeout = args['timeout']
