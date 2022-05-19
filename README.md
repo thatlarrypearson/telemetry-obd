@@ -1,4 +1,4 @@
-# Telemetry OBD Logging
+# Telemetry OBD Logger
 
 The Telemetry OBD Logger captures vehicle performance data using an OBD interface device attached to the vehicle.  While the logger is running, it writes output to files.  Data from multiple vehicles can easily be logged.  Data from each different vehicle is stored in a directory/folder matching the vehicle's VIN or vehicle identification number.
 
