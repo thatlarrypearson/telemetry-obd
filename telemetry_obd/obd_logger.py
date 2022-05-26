@@ -25,6 +25,9 @@ from .obd_common_functions import (
     get_obd_connection,
     recover_lost_connection,
     execute_obd_command,
+    SharedDictionaryManager,
+    default_shared_nmea_command_list,
+    shared_dictionary_to_dictionary,
 )
 
 logger = logging.getLogger("obd_logger")
@@ -86,6 +89,16 @@ def argument_parsing()-> dict:
         action='store_true'
     )
     parser.add_argument(
+        "--shared_dictionary_name",
+        default=None,
+        help="Enable shared memory/dictionary using this name"
+    )
+    parser.add_argument(
+        "--shared_dictionary_command_list",
+        default=None,
+        help="Comma separated list of shared NMEA commands/sentences to be logged (no spaces), defaults to all."
+    )
+    parser.add_argument(
         "--verbose",
         help="Turn verbose output on. Default is off.",
         default=False,
@@ -112,6 +125,22 @@ def main():
     timeout = args['timeout']
     verbose = args['verbose']
     full_cycles = args['full_cycles']
+    shared_dictionary_name = args['shared_dictionary_name']
+    shared_dictionary_command_list = args['shared_dictionary_command_list']
+
+    if shared_dictionary_name and not SharedDictionaryManager:
+        logging.error(f"argument --shared_dictionary_name={shared_dictionary_name} requires UltraDict python package")
+        raise ValueError("USAGE: --shared_dictionary_name requires UltraDict python package")
+
+    if shared_dictionary_name:
+        shared_dictionary = SharedDictionaryManager(shared_dictionary_name)
+    else:
+        shared_dictionary = None
+
+    if shared_dictionary_command_list:
+        shared_dictionary_command_list = shared_dictionary_command_list.split(sep=',')
+    else:
+        shared_dictionary_command_list = default_shared_nmea_command_list
 
     logging_level = logging.WARNING
 
@@ -129,6 +158,8 @@ def main():
     logging.info(f"argument --verbose: {verbose}")
     logging.info(f"argument --full_cycles: {full_cycles}")
     logging.info(f"argument --logging: {args['logging']} ")
+    logging.info(f"argument --shared_dictionary_name: {shared_dictionary_name}")
+    logging.info(f"argument --shared_dictionary_command_list: {shared_dictionary_command_list}")
     logging.debug("debug logging enabled")
 
     # OBD(portstr=None, baudrate=None, protocol=None, fast=True, timeout=0.1, check_voltage=True)
@@ -151,17 +182,38 @@ def main():
 
     command_name_generator = CommandNameGenerator(config_path)
 
+    mid_command_name = command_name_generator.cycle_names[int(len(command_name_generator.cycle_names)/2)]
+    logging.info(f"mid_command_name: {mid_command_name}")
+
     while command_name_generator:
         output_file_path = (get_directory(base_path, vin)) / (get_output_file_name(vin))
         logging.info(f"output file: {output_file_path}")
         with open(output_file_path, mode='w', encoding='utf-8') as out_file:
             for command_name in command_name_generator:
+
+                if shared_dictionary and mid_command_name == command_name:
+                    # Fetch shared dictionary items and place into output stream
+                    for shared_dictionary_command in shared_dictionary_command_list:
+                        if shared_dictionary_command not in shared_dictionary:
+                            logging.warning(f"key {shared_dictionary_command} not in shared_dictionary")
+                            continue
+                        logging.info(f"shared dictionary {shared_dictionary_name} command {shared_dictionary_command}")
+                        logging.debug(f"{shared_dictionary_name} {shared_dictionary_command} {shared_dictionary[shared_dictionary_command]}")
+                        if shared_dictionary_command not in shared_dictionary:
+                            logging.info(f"{shared_dictionary_command} not in shared_dictionary")
+                            continue
+                        output_dictionary = shared_dictionary_to_dictionary(shared_dictionary[shared_dictionary_command])
+                        logging.info(f"type {type(output_dictionary)} value {output_dictionary}")
+                        out_file.write(json.dumps(output_dictionary) + "\n")
+                    out_file.flush()
+                    fsync(out_file.fileno())
+
                 logging.info(f"command_name: {command_name}")
 
                 if '-' in command_name:
                     logging.error(f"skipping malformed command_name: {command_name}")
                     continue
-                    
+
                 iso_format_pre = datetime.isoformat(
                     datetime.now(tz=timezone.utc)
                 )
@@ -211,7 +263,6 @@ def main():
                 ):
                     command_name_generator.full_cycles_count = 0
                     break
-
 
 if __name__ == "__main__":
     main()

@@ -313,3 +313,71 @@ def execute_obd_command(connection:obd.OBD, command_name:str):
         return None
 
     return obd_response
+
+try:
+    # Not making UltraDict a requirement.
+    from UltraDict import UltraDict
+
+    class SharedDictionaryManager(UltraDict):
+        """
+        Shared Dictionary Manager - Uses a dictionary as the shared memory metaphor.
+        Supports multiple instances within single process so long as 'name'
+        is distinct for each instance.  This is not enforced as this class doesn't
+        use the singleton pattern.
+        Different processes can share the same shared memory/dictionary so long as they use the
+        same value for the 'name' constructor variable.
+        Code assumes there is only one writer and one or more readers for each memory region.  If more
+        more than one writer is needed, create multiple instances, one for each writer.
+        """
+        def __init__(self, name:str):
+            """
+            SharedDictionaryManager constructor
+            arguments
+                name
+                    name of the shared memory/dictionary region
+            """
+            # UltraDict(*arg, name=None, buffer_size=10000, serializer=pickle, shared_lock=False, full_dump_size=None, auto_unlink=True, recurse=False, **kwargs)
+            super().__init__(
+                name=name,
+                buffer_size=1048576,    # 1 MB
+                shared_lock=False,      # assume only one writer to shared memory/dictionary
+                full_dump_size=None,    # change this value for Windows machines
+                auto_unlink=False,      # once created, shared memory/dictionary persists on process exit
+                recurse=False            # dictionary can contain dictionary but updates not nested
+            )
+    
+    default_shared_nmea_command_list = [
+        "NMEA_GNGNS",       # Fix data
+        "NMEA_GNGST",       # Pseudorange error statistics
+        "NMEA_GNVTG",       # Course over ground and ground speed
+        "NMEA_GNZDA",       # Time and data
+    ]
+
+    def shared_dictionary_to_dictionary(shared_dictionary:UltraDict)->dict:
+        # sourcery skip: assign-if-exp, dict-comprehension
+        """
+        Convert UltraDict item to a real dictionary
+        so that the return value will work in json.dumps functions
+        """
+        logging.info(f"shared_dictionary type {type(shared_dictionary)}")
+
+        if 'UltraDict' not in str(type(shared_dictionary)):
+            return shared_dictionary
+ 
+        return_value = {}
+        
+        for key, value in shared_dictionary.items():
+            logging.info(f"key {key} value type {type(value)}")
+            if 'UltraDict' in str(type(shared_dictionary)):
+                return_value[key] = shared_dictionary_to_dictionary(value)
+            else:
+                return_value[key] = value
+        
+        return return_value
+
+except ImportError:
+    SharedDictionaryManager = None
+    default_shared_nmea_command_list = None
+
+    def shared_dictionary_to_dictionary(shared_dictionary:dict)->dict:
+        return shared_dictionary

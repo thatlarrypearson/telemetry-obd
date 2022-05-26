@@ -13,17 +13,18 @@ The OBD Logger software runs on Python versions 3.10 or newer.
 The Telemetry OBD Logger application command line interface (CLI) is as follows:
 
 ```bash
-PS C:\Users\human\src\telemetry-obd> python3.10 -m telemetry_obd.obd_logger  --help
-usage:  obd_logger.py [-h] [--config_file CONFIG_FILE] [--config_dir CONFIG_DIR]
-        [--full_cycles FULL_CYCLES] [--timeout TIMEOUT] [--logging] [--no_fast] [--verbose]
-        [base_path]
+$ python3.10 -m telemetry_obd.obd_logger --help
+usage: obd_logger.py [-h] [--config_file CONFIG_FILE] [--config_dir CONFIG_DIR] [--full_cycles FULL_CYCLES] [--timeout TIMEOUT] [--logging] [--no_fast]
+                     [--shared_dictionary_name SHARED_DICTIONARY_NAME] [--shared_dictionary_command_list SHARED_DICTIONARY_COMMAND_LIST] [--verbose]
+                     [--version]
+                     [base_path]
 
 Telemetry OBD Logger
 
 positional arguments:
   base_path             Relative or absolute output data directory. Defaults to 'data'.
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
   --config_file CONFIG_FILE
                         Settings file name. Defaults to '<vehicle-VIN>.ini' or 'default.ini'.
@@ -33,12 +34,16 @@ optional arguments:
                         The number of full cycles before a new output file is started. Default is 50.
   --timeout TIMEOUT     The number seconds before the current command times out. Default is 1.0 seconds.
   --logging             Turn on logging in python-obd library. Default is off.
-  --no_fast             When on, commands for every request will be unaltered with potentially long timeouts when
-                        the car doesn't respond promptly or at all. When off (fast is on), commands are optimized
-                        before being sent to the car. A timeout is added at the end of the command. Default is off.
+  --no_fast             When on, commands for every request will be unaltered with potentially long timeouts when the car doesn't respond promptly or at
+                        all. When off (fast is on), commands are optimized before being sent to the car. A timeout is added at the end of the command.
+                        Default is off.
+  --shared_dictionary_name SHARED_DICTIONARY_NAME
+                        Enable shared memory/dictionary using this name
+  --shared_dictionary_command_list SHARED_DICTIONARY_COMMAND_LIST
+                        Comma separated list of shared NMEA commands/sentences to be logged (no spaces), defaults to all.
   --verbose             Turn verbose output on. Default is off.
-  --version             Prints the version information and then exits.
-PS C:\Users\human\src\telemetry-obd>
+  --version             Print version number and exit.
+$
 ```
 
 #### ```--timeout TIMEOUT```
@@ -297,7 +302,6 @@ Currently, the ```python-OBD``` package needs to be modified before installing f
 
 This package *WILL FAIL* installation if ```python-OBD``` isn't installed correctly.
 
-
 Install this software:
 
 ```bash
@@ -305,7 +309,7 @@ Install this software:
 git clone https://github.com/thatlarrypearson/telemetry-obd.git
 cd telemetry-obd
 python3.10 -m build
-python3.10 -m pip install --user dist/telemetry_obd-0.3.2-py3-none-any.whl
+python3.10 -m pip install --user dist/telemetry_obd-0.4.0-py3-none-any.whl
 
 # make shell programs executable
 chmod 0755 bin/*.sh
@@ -351,6 +355,32 @@ crw-rw---- 1 root dialout 188, 0 Aug 13 15:47 /dev/ttyUSB0
 human@hostname:~ $ ls -l /dev/rfcomm0
 crw-rw---- 1 root dialout 120, 0 Aug 13 15:47 /dev/rfcomm0
 human@hostname:~ $ sudo adduser human dialout
+```
+
+### Installing and Enabling Shared Dictionary Feature
+
+The shared dictionary feature requires the UltraDict Python package to be installed using [UltraDict Installation](https://github.com/thatlarrypearson/telemetry-gps/blob/main/docs/README-UltraDict.md) instructions.
+
+Once the package is installed, the feature can be enabled by changing the ```obd_logger.sh``` shell program.  The change involves adding a command line option to turn the feature on.
+
+```bash
+	${APP_PYTHON} -m telemetry_obd.obd_logger \
+		--config_file "${APP_CONFIG_FILE}" \
+		--config_dir "${APP_CONFIG_DIR}" \
+		--full_cycles "${APP_FULL_CYCLES}" \
+```
+
+Add the following option to the ```telemetry_obd.obd_logger``` command line below the ```--full_cycles``` option:
+
+```bash
+		--shared_dictionary_name "${SHARED_DICTIONARY_NAME}" \
+```
+
+The ```--shared_dictionary_name``` option should appear on the line before ```"${APP_BASE_PATH}"```
+
+```bash
+		"${APP_BASE_PATH}"
+
 ```
 
 ## Headless Operation On Raspberry Pi

@@ -18,6 +18,7 @@ export APP_FULL_CYCLES=1000
 export APP_TEST_CYCLES=5
 export APP_PYTHON=python3.10
 export DEBUG="True"
+export SHARED_DICTIONARY_NAME="GPS"
 
 # Run Command Tester one time if following file exists
 export COMMAND_TESTER="${APP_HOME}/RunCommandTester"
@@ -74,6 +75,8 @@ fi
 
 while date '+%Y/%m/%d %H:%M:%S'
 do
+	# Enable shared dictionary option
+	#	--shared_dictionary_name "${SHARED_DICTIONARY_NAME}" \
 	${APP_PYTHON} -m telemetry_obd.obd_logger \
 		--config_file "${APP_CONFIG_FILE}" \
 		--config_dir "${APP_CONFIG_DIR}" \
