@@ -430,7 +430,7 @@ exit 0
 
 ```/root/bin/telemetry.rc.local``` must be run as root.  Once the Bluetooth subsystem is configured correctly, it invokes ```bin/obd_logger.sh``` provided in this distribution.
 
-Shell variables, like ```OBD_USER``` must be changed in ```/root/bin/telemetry.rc.local``` to match the target system.  The line ```for BT_MAC_ADDR in "00:04:3E:5A:A7:67" "00:19:5D:26:4B:5F"``` must also be changed.  the Bluetooth Media Access Control layer addresses (```"00:04:3E:5A:A7:67" and "00:19:5D:26:4B:5F"```) will need changing to match the target Bluetooth OBD dongle devices.  This address, like an Internet address, must match your current configuration.  Assuming your Bluetooth OBD adapter is currently paired to your Raspberry Pi, click on the Bluetooth icon on your Raspberry Pi desktop and select the ```Devices``` option.
+Shell variables, like ```OBD_USER``` must be changed in ```root/bin/telemetry.rc.local``` to match the target system.  The line ```for BT_MAC_ADDR in "00:04:3E:5A:A7:67" "00:19:5D:26:4B:5F"``` must also be changed.  the Bluetooth Media Access Control layer addresses (```"00:04:3E:5A:A7:67" and "00:19:5D:26:4B:5F"```) will need changing to match the target Bluetooth OBD dongle devices.  This address, like an Internet address, must match your current configuration.  Assuming your Bluetooth OBD adapter is currently paired to your Raspberry Pi, click on the Bluetooth icon on your Raspberry Pi desktop and select the ```Devices``` option.
 
 ```bash
 #!/usr/bin/bash
@@ -495,7 +495,23 @@ exit 0
 
 The yellow arrow points to where the Bluetooth MAC address is found on the ```Devices``` dialog box.
 
-The ```runuser``` command in "```/etc/rc.local```" file runs the "```obd_logger.sh```" ```bash``` shell program as user "```human```" and group "```dialout```".  Make sure both ```obd_logger.sh``` and ```obd_tester.sh``` are executable by using the command ```chmod +x obd_logger.sh obd_tester.sh```.
+The ```runuser``` command in "```/root/bin/telemetry.rc.local```" file runs the "```obd_logger.sh```" ```bash``` shell program as user "```human```" and group "```dialout```".
+
+Once the ```root/bin/telemetry.rc.local``` file has been modified, it must be copied to ```/root/bin``` and the file permissions changed:
+
+```bash
+$ cd
+$ cd telemetry-obd/root/bin
+$ sudo mkdir /root/bin
+$ sudo cp telemetry.rc.local /root/bin
+$ sudo chmod 0755 /root/bin/telemetry.rc.local
+$ sudo ls -l /root/bin/telemetry.rc.local
+$ sudo ls -l /root/bin/telemetry.rc.local
+-rwxr-xr-x 1 root root 1503 May 31 10:16 /root/bin/telemetry.rc.local
+$
+```
+
+Make sure both ```obd_logger.sh``` and ```obd_tester.sh``` are executable by using the command ```chmod +x obd_logger.sh obd_tester.sh```.
 
 The ```obd_logger.sh``` shell program is as follows:
 
@@ -607,9 +623,9 @@ On an iPhone, the **Personal Hotspot** times out and goes to sleep when no devic
 
 Running Raspberry Pi's in headless mode requires WIFI to be configured in advance.  For example, put each phone or tablet into mobile hotspot mode and then configure the Raspberry Pi to automatically connect to them before using the logging system in a vehicle.
 
-Another solution is to use add a GPS receiver to the Raspberry Pi to add [Stratum-1 NTP Server](https://www.satsignal.eu/ntp/Raspberry-Pi-NTP.html) capability to the Raspberry Pi.  This option is currently under active investigation.  The primary advantage is it works in remote environments were mobile wireless signals are unavailable.  It also requires less work on behalf of the vehicle operator.
+A possible solution is to use add a GPS receiver to the Raspberry Pi to add [Stratum-1 NTP Server](https://www.satsignal.eu/ntp/Raspberry-Pi-NTP.html) capability to the Raspberry Pi.  This works in remote environments were mobile wireless signals are unavailable.  It also requires less work on behalf of the vehicle operator.
 
-Another solution is to use a Raspberry Pi GPS HAT with a built-in real-time clock.  This option is under investigation using the [Raspberry Pi UPS HAT](https://www.pishop.us/product/raspberry-pi-ups-hat/).
+The solution currently in use a Raspberry Pi UPS HAT with a built-in real-time clock.  This option, using the [Raspberry Pi UPS HAT](https://www.pishop.us/product/raspberry-pi-ups-hat/) has been working well.  No operator intervention required.
 
 ## Running Raspberry Pi In Vehicle
 
