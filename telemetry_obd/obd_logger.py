@@ -214,7 +214,7 @@ def main():
                     logging.error(f"skipping malformed command_name: {command_name}")
                     continue
 
-                iso_format_pre = datetime.isoformat(
+                iso_ts_pre = datetime.isoformat(
                     datetime.now(tz=timezone.utc)
                 )
 
@@ -235,19 +235,19 @@ def main():
                         connection.close()
                         connection = get_obd_connection(fast=fast, timeout=timeout)
 
-                iso_format_post = datetime.isoformat(
+                iso_ts_post = datetime.isoformat(
                     datetime.now(tz=timezone.utc)
                 )
 
                 obd_response_value = clean_obd_query_response(command_name, obd_response)
 
-                logging.info(f"saving: {command_name}, {obd_response_value}, {iso_format_pre}, {iso_format_post}")
+                logging.info(f"saving: {command_name}, {obd_response_value}, {iso_ts_pre}, {iso_ts_post}")
 
                 out_file.write(json.dumps({
                             'command_name': command_name,
                             'obd_response_value': obd_response_value,
-                            'iso_ts_pre': iso_format_pre,
-                            'iso_ts_post': iso_format_post,
+                            'iso_ts_pre': iso_ts_pre,
+                            'iso_ts_post': iso_ts_post,
                         }) + "\n"
                 )
                 out_file.flush()

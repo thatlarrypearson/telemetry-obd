@@ -131,7 +131,7 @@ def main():
 
     base_path = args['base_path']
 
-    output_file_path = (get_directory(base_path, vin)) / (get_output_file_name(vin + '-TEST'))
+    output_file_path = (get_directory(base_path, vin)) / (get_output_file_name(f"{vin}-TEST"))
     logging.info(f"output file: {output_file_path}")
     with open(output_file_path, mode='w', encoding='utf-8') as out_file:
         for cycle in range(cycles):
@@ -139,7 +139,7 @@ def main():
             for command_name in get_command_list():
                 logging.info(f"command_name {command_name}")
 
-                iso_format_pre = datetime.isoformat(
+                iso_ts_pre = datetime.isoformat(
                     datetime.now(tz=timezone.utc)
                 )
 
@@ -159,19 +159,19 @@ def main():
                         connection.close()
                         connection = get_obd_connection(fast=fast, timeout=timeout)
 
-                iso_format_post = datetime.isoformat(
+                iso_ts_post = datetime.isoformat(
                     datetime.now(tz=timezone.utc)
                 )
 
                 obd_response_value = clean_obd_query_response(command_name, obd_response)
 
-                logging.info(f"saving: {command_name}, {obd_response_value}, {iso_format_pre}, {iso_format_post}")
+                logging.info(f"saving: {command_name}, {obd_response_value}, {iso_ts_pre}, {iso_ts_post}")
 
                 out_file.write(json.dumps({
                             'command_name': command_name,
                             'obd_response_value': obd_response_value,
-                            'iso_ts_pre': iso_format_pre,
-                            'iso_ts_post': iso_format_post,
+                            'iso_ts_pre': iso_ts_pre,
+                            'iso_ts_post': iso_ts_post,
                         }) + "\n"
                 )
 
