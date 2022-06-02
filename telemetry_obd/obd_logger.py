@@ -174,7 +174,7 @@ def main():
     config_file = args['config_file']
     config_dir = args['config_dir']
     base_path = ''.join(args['base_path'])
-    
+
     if config_file:
         config_path = Path(config_dir) / Path(config_file)
     else:
