@@ -6,7 +6,16 @@ export OBD_USER="lbp"
 export OBD_GROUP="dialout"
 export OBD_HOME="/home/${OBD_USER}"
 export DEBUG="True"
-export LOG_FILE="/tmp/telemetry-obd_$(date '+%Y-%m-%d_%H:%M:%S').log"
+export TMP_DIR="/root/tmp"
+export LOG_FILE="${TMP_DIR}/telemetry-obd_$(date '+%Y-%m-%d_%H:%M:%S').log"
+
+if [ ! -d "${TMP_DIR}" ]
+then
+        mkdir --parents "${TMP_DIR}"
+fi
+
+# redirect all stdout and stderr to file
+exec &> "${LOG_FILE}"
 
 # Debugging support
 if [ "${DEBUG}" == "True" ]
@@ -17,9 +26,6 @@ fi
 
 # turn off stdin
 0<&-
-
-# redirect all stdout and stderr to file
-exec &> "${LOG_FILE}"
 
 # Run until Bluetooth subsystem is activated
 export RtnCode=1
@@ -37,17 +43,28 @@ done
 ## Change the Bluetooth MAC addresses in the next line to match your addresses
 ## One or more MAC addresses matching available Bluetooth OBD devices are required
 ## The following tries MAC addresses until a working one is found
-for BT_MAC_ADDR in "00:04:3E:5A:A7:67" "00:19:5D:26:4B:5F"
+export RtnCode=1
+while [ "${RtnCode}" -ne 0 ]
 do
-        bluetoothctl connect "${BT_MAC_ADDR}" > /tmp/btctl-connect
-        grep "Connected: yes" /tmp/btctl-connect
-        RtnCode="$?"
+	for BT_MAC_ADDR in "00:04:3E:5A:A7:67" "00:19:5D:26:4B:5F"
+	do
+        	bluetoothctl connect "${BT_MAC_ADDR}" > /tmp/btctl-connect
+        	grep "Connected: yes" /tmp/btctl-connect
+        	RtnCode="$?"
 
-        if [ "${RtnCode}" -eq 0 ]
-        then
-                rfcomm bind rfcomm0 "${BT_MAC_ADDR}"
-                break
-        fi
+        	if [ "${RtnCode}" -eq 0 ]
+        	then
+                	rfcomm bind rfcomm0 "${BT_MAC_ADDR}"
+                	break
+        	fi
+	done
+
+       	if [ "${RtnCode}" -eq 0 ]
+       	then
+               	echo Ready to start obd_logger.sh
+               	break
+       	fi
+	sleep 20
 done
 
 ## Run the script obd_logger.sh as user "${OBD_USER}" and group "${OBD_GROUP}"
