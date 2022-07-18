@@ -27,17 +27,8 @@ fi
 # turn off stdin
 0<&-
 
-# Run until Bluetooth subsystem is activated
-export RtnCode=1
-while [ ${RtnCode} -gt 0 ]
-do
-	# Test to see if Bluetooth subsystem is up
-	hcitool scan
-	export RtnCode=$?
-
-	# Give Bluetooth subsystem more time to activate
-	sleep 20
-done
+# Give Bluetooth subsystem more time to activate
+sleep 5
 
 ## Bind the available paired OBDII device to /dev/rfcomm0
 ## Change the Bluetooth MAC addresses in the next line to match your addresses
@@ -64,7 +55,7 @@ do
                	echo Ready to start obd_logger.sh
                	break
        	fi
-	sleep 20
+	sleep 5
 done
 
 ## Run the script obd_logger.sh as user "${OBD_USER}" and group "${OBD_GROUP}"
