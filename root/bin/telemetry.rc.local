@@ -18,7 +18,7 @@ fi
 exec &> "${LOG_FILE}"
 
 # Debugging support
-if [ "${DEBUG}" == "True" ]
+if [ "${DEBUG}" = "True" ]
 then
 	# enable shell debug mode
 	set -x
