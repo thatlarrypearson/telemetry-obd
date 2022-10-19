@@ -26,7 +26,8 @@ from .obd_common_functions import (
     recover_lost_connection,
     execute_obd_command,
     SharedDictionaryManager,
-    default_shared_nmea_command_list,
+    default_shared_gps_command_list,
+    default_shared_weather_command_list,
     shared_dictionary_to_dictionary,
 )
 
@@ -96,7 +97,19 @@ def argument_parsing()-> dict:
     parser.add_argument(
         "--shared_dictionary_command_list",
         default=None,
-        help="Comma separated list of shared NMEA commands/sentences to be logged (no spaces), defaults to all."
+        help="Comma separated list of shared GPS commands/sentences to be logged (no spaces)"
+    )
+    parser.add_argument(
+        "--gps_defaults",
+        help="Include GPS defaults in --shared_dictionary_command_list",
+        default=False,
+        action='store_true'
+    )
+    parser.add_argument(
+        "--weather_defaults",
+        help="Include weather defaults in --shared_dictionary_command_list",
+        default=False,
+        action='store_true'
     )
     parser.add_argument(
         "--verbose",
@@ -127,20 +140,26 @@ def main():
     full_cycles = args['full_cycles']
     shared_dictionary_name = args['shared_dictionary_name']
     shared_dictionary_command_list = args['shared_dictionary_command_list']
+    gps_defaults = args['gps_defaults']
+    weather_defaults = args['weather_defaults']
 
     if shared_dictionary_name and not SharedDictionaryManager:
         logging.error(f"argument --shared_dictionary_name={shared_dictionary_name} requires UltraDict python package")
         raise ValueError("USAGE: --shared_dictionary_name requires UltraDict python package")
 
-    if shared_dictionary_name:
-        shared_dictionary = SharedDictionaryManager(shared_dictionary_name)
-    else:
-        shared_dictionary = None
-
     if shared_dictionary_command_list:
         shared_dictionary_command_list = shared_dictionary_command_list.split(sep=',')
+
+    if shared_dictionary_name:
+        shared_dictionary = SharedDictionaryManager(shared_dictionary_name)
+        if not shared_dictionary_command_list:
+            shared_dictionary_command_list = []
+        if gps_defaults:
+            shared_dictionary_command_list += default_shared_gps_command_list
+        if weather_defaults:
+            shared_dictionary_command_list += default_shared_weather_command_list
     else:
-        shared_dictionary_command_list = default_shared_nmea_command_list
+        shared_dictionary = None
 
     logging_level = logging.WARNING
 
@@ -159,6 +178,8 @@ def main():
     logging.info(f"argument --full_cycles: {full_cycles}")
     logging.info(f"argument --logging: {args['logging']} ")
     logging.info(f"argument --shared_dictionary_name: {shared_dictionary_name}")
+    logging.info(f"argument --gps_defaults: {gps_defaults}")
+    logging.info(f"argument --weather_defaults: {weather_defaults}")
     logging.info(f"argument --shared_dictionary_command_list: {shared_dictionary_command_list}")
     logging.debug("debug logging enabled")
 
@@ -185,17 +206,22 @@ def main():
     mid_command_name = command_name_generator.cycle_names[int(len(command_name_generator.cycle_names)/2)]
     logging.info(f"mid_command_name: {mid_command_name}")
 
+    shared_dictionary_command_fail = {shared_dictionary_command: 0 for shared_dictionary_command in shared_dictionary_command_list}
+
     while command_name_generator:
         output_file_path = (get_directory(base_path, vin)) / (get_output_file_name(vin))
         logging.info(f"output file: {output_file_path}")
         with open(output_file_path, mode='w', encoding='utf-8') as out_file:
+
             for command_name in command_name_generator:
 
                 if shared_dictionary and mid_command_name == command_name:
                     # Fetch shared dictionary items and place into output stream
                     for shared_dictionary_command in shared_dictionary_command_list:
                         if shared_dictionary_command not in shared_dictionary:
-                            logging.warning(f"key {shared_dictionary_command} not in shared_dictionary")
+                            if not shared_dictionary_command_fail[shared_dictionary_command] % 1000:
+                                logging.warning(f"key {shared_dictionary_command} not in shared_dictionary ({shared_dictionary_command_fail[shared_dictionary_command]} times)")
+                            shared_dictionary_command_fail[shared_dictionary_command] += 1
                             continue
                         logging.info(f"shared dictionary {shared_dictionary_name} command {shared_dictionary_command}")
                         logging.debug(f"{shared_dictionary_name} {shared_dictionary_command} {shared_dictionary[shared_dictionary_command]}")

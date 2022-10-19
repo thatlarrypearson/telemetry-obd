@@ -13,12 +13,13 @@ export APP_HOME="/home/$(whoami)/telemetry-obd"
 export APP_CONFIG_DIR="${APP_HOME}/config"
 export APP_TMP_DIR="${APP_HOME}/tmp"
 export APP_BASE_PATH="${APP_HOME}/data"
-export APP_LOG_FILE="telemetry-$(date '+%Y-%m-%d %H_%M_%S').log"
-export APP_FULL_CYCLES=1000
-export APP_TEST_CYCLES=5
+export APP_LOG_FILE="telemetry-$(date '+%Y-%m-%d_%H_%M_%S').log"
+export APP_FULL_CYCLES=10000
+export APP_TEST_CYCLES=100
 export APP_PYTHON=python3.10
 export DEBUG="True"
 export SHARED_DICTIONARY_NAME="GPS"
+export TIMEOUT=4.0
 
 # Run Command Tester one time if following file exists
 export COMMAND_TESTER="${APP_HOME}/RunCommandTester"
@@ -61,9 +62,10 @@ sleep ${STARTUP_DELAY}
 if [ -f "${COMMAND_TESTER}" ]
 then
 	${APP_PYTHON} -m telemetry_obd.obd_command_tester \
+		--timeout "${TIMEOUT}" \
+		--no_fast \
 		--cycle "${APP_TEST_CYCLES}" \
-		--base_path "${APP_BASE_PATH}" \
-		--verbose --logging
+		--base_path "${APP_BASE_PATH}"
 
 	export RtnVal="$?"
 	echo obd_command_tester returns "${RtnVal}"
@@ -76,11 +78,12 @@ fi
 while date '+%Y/%m/%d %H:%M:%S'
 do
 	# Enable shared dictionary option
-	#	--shared_dictionary_name "${SHARED_DICTIONARY_NAME}" \
 	${APP_PYTHON} -m telemetry_obd.obd_logger \
-		--config_file "${APP_CONFIG_FILE}" \
+		--timeout "${TIMEOUT}" \
+		--no_fast \
 		--config_dir "${APP_CONFIG_DIR}" \
 		--full_cycles "${APP_FULL_CYCLES}" \
+		--shared_dictionary_name "${SHARED_DICTIONARY_NAME}" \
 		"${APP_BASE_PATH}"
 
 	export RtnVal="$?"
@@ -89,3 +92,4 @@ do
 
 	sleep "${RESTART_DELAY}"
 done
+

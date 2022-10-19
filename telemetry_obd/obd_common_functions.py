@@ -130,7 +130,7 @@ def get_directory(base_path, vin):
 
 def get_config_path(base_path, vin):
     """Return path to settings file."""
-    path = Path(str(vin) + '.ini')
+    path = Path(f"{str(vin)}.ini")
     if path.is_file():
         return path
 
@@ -340,17 +340,25 @@ try:
             super().__init__(
                 name=name,
                 buffer_size=1048576,    # 1 MB
-                shared_lock=False,      # assume only one writer to shared memory/dictionary
-                full_dump_size=None,    # change this value for Windows machines
+                shared_lock=True,       # enabling multiple writers on shared memory/dictionary
+                full_dump_size=None,    # change this value to buffer_size or larger for Windows machines
                 auto_unlink=False,      # once created, shared memory/dictionary persists on process exit
-                recurse=False            # dictionary can contain dictionary but updates not nested
+                recurse=False           # dictionary can contain dictionary but updates not nested
             )
     
-    default_shared_nmea_command_list = [
+    default_shared_gps_command_list = [
         "NMEA_GNGNS",       # Fix data
         "NMEA_GNGST",       # Pseudorange error statistics
         "NMEA_GNVTG",       # Course over ground and ground speed
         "NMEA_GNZDA",       # Time and data
+    ]
+
+    default_shared_weather_command_list = [
+        "WTHR_rapid_wind",
+        "WTHR_hub_status",
+        "WTHR_device_status",
+        "WTHR_obs_st",
+        "WTHR_evt_precip",
     ]
 
     def shared_dictionary_to_dictionary(shared_dictionary:UltraDict)->dict:
@@ -377,7 +385,8 @@ try:
 
 except ImportError:
     SharedDictionaryManager = None
-    default_shared_nmea_command_list = None
+    default_shared_gps_command_list = None
+    default_shared_weather_command_list = None
 
     def shared_dictionary_to_dictionary(shared_dictionary:dict)->dict:
         return shared_dictionary

@@ -50,11 +50,12 @@ do
         	fi
 	done
 
-       	if [ "${RtnCode}" -eq 0 ]
-       	then
+    if [ "${RtnCode}" -eq 0 ]
+    then
                	echo Ready to start obd_logger.sh
                	break
-       	fi
+	fi
+
 	sleep 5
 done
 

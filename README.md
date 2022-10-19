@@ -361,7 +361,7 @@ human@hostname:~ $ sudo adduser human dialout
 
 The shared dictionary feature requires the UltraDict Python package to be installed using [UltraDict Installation](https://github.com/thatlarrypearson/telemetry-gps/blob/main/docs/README-UltraDict.md) instructions.
 
-Once the package is installed, the feature can be enabled by changing the ```obd_logger.sh``` shell program.  The change involves adding a command line option to turn the feature on.
+Once the package is installed, the feature can be enabled by changing the ```obd_logger.sh``` shell program.  The change involves adding command line options to turn the feature on.
 
 ```bash
 	${APP_PYTHON} -m telemetry_obd.obd_logger \
@@ -375,6 +375,21 @@ Add the following option to the ```telemetry_obd.obd_logger``` command line belo
 ```bash
 		--shared_dictionary_name "${SHARED_DICTIONARY_NAME}" \
 ```
+
+If specific shared dictionary keys are desired, they can be added below ```--shared_dictionary_name```.
+
+```bash
+    --shared_dictionary_command_list "NMEA_GNGNS,NMEA_GNGST,NMEA_GNVTG,NMEA_GNZDA,WTHR_rapid_wind,WTHR_hub_status,WTHR_device_status,WTHR_obs_st" \
+```
+
+If the default shared dictionary keys are desired, they can be added below ```--shared_dictionary_name```.
+
+```bash
+    --gps_defaults \
+    --weather_defaults \
+```
+
+```-shared_dictionary_command_list```, ```--gps_defaults``` and ```--weather_defaults``` are used when present in any combination to determine which shared dictionary commands are added into the logged data files.
 
 The ```--shared_dictionary_name``` option should appear on the line before ```"${APP_BASE_PATH}"```
 
@@ -456,33 +471,36 @@ fi
 # redirect all stdout and stderr to file
 exec &> "${LOG_FILE}"
 
-# Run until Bluetooth subsystem is activated
-export RtnCode=1
-while [ ${RtnCode} -gt 0 ]
-do
-	# Test to see if Bluetooth subsystem is up
-	hcitool scan
-	export RtnCode=$?
-
-	# Give Bluetooth subsystem more time to activate
-	sleep 20
-done
+# Give Bluetooth subsystem more time to activate
+sleep 5
 
 ## Bind the available paired OBDII device to /dev/rfcomm0
 ## Change the Bluetooth MAC addresses in the next line to match your addresses
 ## One or more MAC addresses matching available Bluetooth OBD devices are required
 ## The following tries MAC addresses until a working one is found
-for BT_MAC_ADDR in "00:04:3E:5A:A7:67" "00:19:5D:26:4B:5F"
+export RtnCode=1
+while [ "${RtnCode}" -ne 0 ]
 do
-        bluetoothctl connect "${BT_MAC_ADDR}" > /tmp/btctl-connect
-        grep "Connected: yes" /tmp/btctl-connect
-        RtnCode="$?"
+  for BT_MAC_ADDR in "00:04:3E:5A:A7:67" "00:19:5D:26:4B:5F"
+  do
+    bluetoothctl connect "${BT_MAC_ADDR}" > /tmp/btctl-connect
+    grep "Connected: yes" /tmp/btctl-connect
+    RtnCode="$?"
 
-        if [ "${RtnCode}" -eq 0 ]
-        then
-                rfcomm bind rfcomm0 "${BT_MAC_ADDR}"
-                break
-        fi
+    if [ "${RtnCode}" -eq 0 ]
+    then
+      rfcomm bind rfcomm0 "${BT_MAC_ADDR}"
+      break
+    fi
+  done
+
+  if [ "${RtnCode}" -eq 0 ]
+  then
+    echo Ready to start obd_logger.sh
+    break
+  fi
+
+  sleep 5
 done
 
 ## Run the script obd_logger.sh as user "${OBD_USER}" and group "${OBD_GROUP}"
