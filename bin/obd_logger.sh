@@ -26,7 +26,7 @@ export COMMAND_TESTER="${APP_HOME}/RunCommandTester"
 export COMMAND_TESTER_DELAY=60
 
 # Debugging support
-if [ "${DEBUG}" == "True" ]
+if [ "${DEBUG}" = "True" ]
 then
 	# enable shell debug mode
 	set -x
