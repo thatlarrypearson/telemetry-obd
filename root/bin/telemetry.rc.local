@@ -27,8 +27,12 @@ fi
 # turn off stdin
 0<&-
 
+# Enable Bluetooth subsystem
+bluetoothctl power on
+bluetoothctl agent on
+
 # Give Bluetooth subsystem more time to activate
-sleep 5
+sleep 45
 
 ## Bind the available paired OBDII device to /dev/rfcomm0
 ## Change the Bluetooth MAC addresses in the next line to match your addresses
