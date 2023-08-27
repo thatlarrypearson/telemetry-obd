@@ -112,6 +112,12 @@ def argument_parsing()-> dict:
         action='store_true'
     )
     parser.add_argument(
+        "--output_file_name_counter",
+        help="Base output file name on counter not timestamps",
+        default=False,
+        action='store_true'
+    )
+    parser.add_argument(
         "--verbose",
         help="Turn verbose output on. Default is off.",
         default=False,
@@ -142,6 +148,7 @@ def main():
     shared_dictionary_command_list = args['shared_dictionary_command_list']
     gps_defaults = args['gps_defaults']
     weather_defaults = args['weather_defaults']
+    output_file_name_counter = args['output_file_name_counter']
 
     if shared_dictionary_name and not SharedDictionaryManager:
         logging.error(f"argument --shared_dictionary_name={shared_dictionary_name} requires UltraDict python package")
@@ -180,6 +187,7 @@ def main():
     logging.info(f"argument --shared_dictionary_name: {shared_dictionary_name}")
     logging.info(f"argument --gps_defaults: {gps_defaults}")
     logging.info(f"argument --weather_defaults: {weather_defaults}")
+    logging.info(f"argument --output_file_name_counter: {output_file_name_counter}")
     logging.info(f"argument --shared_dictionary_command_list: {shared_dictionary_command_list}")
     logging.debug("debug logging enabled")
 
@@ -209,7 +217,9 @@ def main():
     shared_dictionary_command_fail = {shared_dictionary_command: 0 for shared_dictionary_command in shared_dictionary_command_list}
 
     while command_name_generator:
-        output_file_path = (get_directory(base_path, vin)) / (get_output_file_name(vin))
+        output_file_path = (get_directory(base_path, vin)) / (
+            get_output_file_name(base_path, vin, output_file_name_counter=output_file_name_counter)
+        )
         logging.info(f"output file: {output_file_path}")
         # x - open for exclusive creation, failing if the file already exists
         with open(output_file_path, mode='x', encoding='utf-8') as out_file:

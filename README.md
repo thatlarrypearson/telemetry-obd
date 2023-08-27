@@ -37,6 +37,8 @@ options:
   --no_fast             When on, commands for every request will be unaltered with potentially long timeouts when the car doesn't respond promptly or at
                         all. When off (fast is on), commands are optimized before being sent to the car. A timeout is added at the end of the command.
                         Default is off.
+  --output_file_name_counter
+                        Base output file name on counter not timestamps
   --shared_dictionary_name SHARED_DICTIONARY_NAME
                         Enable shared memory/dictionary using this name
   --shared_dictionary_command_list SHARED_DICTIONARY_COMMAND_LIST
@@ -200,6 +202,8 @@ optional arguments:
   --no_fast             When on, commands for every request will be unaltered with potentially long timeouts when the car
                         doesn't respond promptly or at all. When off (fast is on), commands are optimized before being
                         sent to the car. A timeout is added at the end of the command. Default is off so fast is on.
+  --output_file_name_counter
+                        Base output file name on counter not timestamps
   --verbose             Turn verbose output on. Default is off.
 ```
 

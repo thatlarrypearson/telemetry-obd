@@ -84,6 +84,12 @@ def argument_parsing()-> dict:
         action='store_true'
     )
     parser.add_argument(
+        "--output_file_name_counter",
+        help="Base output file name on counter not timestamps",
+        default=False,
+        action='store_true'
+    )
+    parser.add_argument(
         "--verbose",
         help="Turn verbose output on. Default is off.",
         default=False,
@@ -100,6 +106,7 @@ def main():
     timeout = args['timeout']
     verbose = args['verbose']
     cycles = args['cycles']
+    output_file_name_counter = args['output_file_name_counter']
 
     logging_level = logging.WARNING
 
@@ -117,6 +124,7 @@ def main():
     logging.info(f"argument --verbose: {verbose}")
     logging.info(f"argument --cycles: {cycles}")
     logging.info(f"argument --logging: {args['logging']} ")
+    logging.info(f"argument --output_file_name_counter: {output_file_name_counter}")
     logging.debug("debug logging enabled")
 
     connection = get_obd_connection(fast=fast, timeout=timeout)
@@ -131,7 +139,9 @@ def main():
 
     base_path = args['base_path']
 
-    output_file_path = (get_directory(base_path, vin)) / (get_output_file_name(f"{vin}-TEST"))
+    output_file_path = (get_directory(base_path, vin)) / (
+        get_output_file_name(base_path, f"{vin}-TEST", output_file_name_counter=False)
+    )
     logging.info(f"output file: {output_file_path}")
     with open(output_file_path, mode='w', encoding='utf-8') as out_file:
         for cycle in range(cycles):
