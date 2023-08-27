@@ -29,7 +29,7 @@ OBD_ERROR_MESSAGES = {
     "BUS ERROR": "Potential OBD adapter to vehicle OBD interface circuit problem.",
     "CAN ERROR": "OBD adapter having trouble transmitting or receiving messages",
     ">DATA ERROR": "CRC/checksum error.",
-    "DATA ERROR": "Data formating error.",
+    "DATA ERROR": "Data formatting error.",
     "FB ERROR": "Feedback error.  Circuit problem?",
     "FC RX TIMEOUT": "Timeout error.  Circuit problem?",
     "LP ALERT": "Low power alert.  Standby mode in 2 seconds.",

@@ -57,10 +57,10 @@ The following builds Python 3.10 from source code.
 # the following makes and installs python3.10 into /usr/local/bin
 # with the libraries in /usr/local/lib.
 cd
-wget https://www.python.org/ftp/python/3.10.4/Python-3.10.4.tgz
+wget https://www.python.org/ftp/python/3.10.13/Python-3.10.13.tgz
 cd /opt
-sudo tar xvzf ~/Python-3.10.4.tgz
-cd Python-3.10.4
+sudo tar xvzf ~/Python-3.10.13.tgz
+cd Python-3.10.13
 
 # compile Python 3.10
 sudo ./configure --enable-optimizations
@@ -71,12 +71,12 @@ sudo make altinstall
 # cleanup
 sudo make clean
 cd /opt
-sudo rm -rf Python-3.10.4
+sudo rm -rf Python-3.10.13
 
 # test installation
 python3.10 --version
 ```
 
-All is well when ```Python 3.10.4``` is returned by the ```python3.10 --version``` command.
+All is well when ```Python 3.10.13``` is returned by the ```python3.10 --version``` command.
 
 The latest available production version of Python 3.10 should be used when available.  The latest versions of source code can always be found on the [Python Source Releases](https://www.python.org/downloads/source/) web page.  Just scan down the list for the first Python 3.10 version.

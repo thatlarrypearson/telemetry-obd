@@ -2338,6 +2338,42 @@ def egr_air_flow(messages):
         mass_flow_rate_b,
     ]
 
+def vehicle_operation_data(messages):
+    if no_data(messages):
+        return None
+    
+    a = messages[0].data[2]
+    b = messages[0].data[3]
+    c = messages[0].data[4]
+    d = messages[0].data[5]
+    recent_distance_traveled = float(( 256 * (256 * ((256 * a) + b)) + c) + d) / 10.0 * ureg['km']
+
+    e = messages[0].data[6]
+    f = messages[0].data[7]
+    g = messages[0].data[8]
+    h = messages[0].data[9]
+    lifetime_distance_traveled = float(( 256 * (256 * ((256 * e) + f)) + g) + h) / 10.0 * ureg['km']
+
+    i = messages[0].data[2]
+    j = messages[0].data[3]
+    k = messages[0].data[4]
+    l = messages[0].data[5]
+    recent_fuel_consumed = float(( 256 * (256 * ((256 * i) + j)) + k) + l) / 10.0 * ureg['km']
+
+    m = messages[0].data[6]
+    n = messages[0].data[7]
+    o = messages[0].data[8]
+    p = messages[0].data[9]
+    lifetime_fuel_consumed = float(( 256 * (256 * ((256 * m) + n)) + o) + p) / 100.0 * ureg['liters']
+
+    return [
+        recent_distance_traveled,
+        lifetime_distance_traveled,
+        recent_fuel_consumed,
+        lifetime_fuel_consumed,
+    ]
+
+
 NEW_COMMANDS = [
     # name, description, cmd, bytes, decoder, ECU, fast
     # OBDCommand("name", "description", b"01XX", 0, raw_string, ECU.ENGINE, True),
@@ -2442,5 +2478,6 @@ NEW_COMMANDS = [
     OBDCommand("PERF_TRACKING_COMPRESSION", "In-use performance tracking (compression ignition)", b"090b", 4, raw_string,ECU.ALL, True),
     OBDCommand("ESN_COUNT", "Engine Serial Number Count", b'090C', 3, count, ECU.ENGINE, True),
     OBDCommand("ESN", "Engine Serial Number", b'090D', 24, encoded_string(19), ECU.ENGINE, True),
+    OBDCommand("VEHICLE_OPERATION_DATA", "Vehicle Operation Data - Distance/Fuel Used", b'0917', 18, vehicle_operation_data, ECU.ALL, True)
 
 ]
