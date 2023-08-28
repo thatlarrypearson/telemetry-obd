@@ -329,7 +329,7 @@ Install this software:
 git clone https://github.com/thatlarrypearson/telemetry-obd.git
 cd telemetry-obd
 python3.10 -m build
-python3.10 -m pip install --user dist/telemetry_obd-0.4.0-py3-none-any.whl
+python3.10 -m pip install --user dist/telemetry_obd-0.4.1-py3-none-any.whl
 
 # make shell programs executable
 chmod 0755 bin/*.sh
