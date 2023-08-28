@@ -6,7 +6,7 @@ At some point, the Raspberry Pi 4 will need to pair with an OBD Interface that i
 
 Newer Bluetooth OBD interfaces use different chip sets which work so long as they support the ELM 327 command language.  E.g. [OBDLink MX+](https://www.obdlink.com/products/obdlink-mxp/) uses the [STN2100 MULTI-PROTOCOL OBD INTERPRETER IC](https://www.obdsol.com/solutions/chips/stn2100/) chip set family to good effect.
 
-When an OBD interface emulator is available, pairing the OBD device to the Raspberry Pi worked fine using the pairing program accessible through the Pi's GUI.  The only complaint is there isn't much time to pair.  In general, from the time the OBD interface is plugged into either the car or the emulator, there is less than 20 seconds to complete the pairing before the OBD interface turns off pairing.  It can a few times to pair.
+When an OBD interface emulator is available, pairing the OBD device to the Raspberry Pi worked fine using the pairing program accessible through the Pi's GUI.  The only complaint is there isn't much time to pair.  In general, from the time the OBD interface is plugged into either the car or the emulator, there is less than 20 seconds to complete the pairing before the OBD interface turns off pairing.  It can take a few attempts to pair.
 
 Pairing with the OBD device plugged into a vehicle is considerably more challenging.  OBD interface extension cords are available.  Extension cords are useful because the lights on the OBD interface can be seen.  These lights are important while trying to pair.  Lights also blink when the Pi is communicating to the OBD interface.
 
