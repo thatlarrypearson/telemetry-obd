@@ -20,7 +20,7 @@ documentation = "https://github.com/thatlarrypearson/telemetry-obd"
 keywords = ["obd", "telematics", "vehicle"]
 dependencies = [
   'obd >= 0.7.2',
-  'pint >= 0.19.2',
+  'pint > 0.20',
   'rich >= 10.12.0',
 ]
 

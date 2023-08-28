@@ -218,7 +218,9 @@ def main():
 
     while command_name_generator:
         output_file_path = (get_directory(base_path, vin)) / (
-            get_output_file_name(base_path, vin, output_file_name_counter=output_file_name_counter)
+            get_output_file_name(
+                base_path, vin, output_file_name_counter=output_file_name_counter
+            )
         )
         logging.info(f"output file: {output_file_path}")
         # x - open for exclusive creation, failing if the file already exists

@@ -140,7 +140,9 @@ def main():
     base_path = args['base_path']
 
     output_file_path = (get_directory(base_path, vin)) / (
-        get_output_file_name(base_path, f"{vin}-TEST", output_file_name_counter=False)
+        get_output_file_name(
+            base_path, f"{vin}-TEST", output_file_name_counter=output_file_name_counter
+        )
     )
     logging.info(f"output file: {output_file_path}")
     with open(output_file_path, mode='w', encoding='utf-8') as out_file:

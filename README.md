@@ -316,13 +316,7 @@ python3.10 -m pip install --upgrade --user pip
 python3.10 -m pip install --upgrade --user wheel setuptools markdown build
 ```
 
-### ```python-OBD``` Package
-
-Currently, the ```python-OBD``` package needs to be modified before installing from source code.  Detailed installation instructions (includes determining if the package needs modification and how to modify the package) are found in [```python-OBD``` Package Install](docs/python-OBD-Install.md).
-
-This package *WILL FAIL* installation if ```python-OBD``` isn't installed correctly.
-
-Install this software:
+### Installing ```telemetry_obd``` Package
 
 ```bash
 # get latest version of this software from github repository

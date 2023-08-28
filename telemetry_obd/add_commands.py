@@ -3,14 +3,24 @@
 import logging
 from obd import OBDCommand, ECU
 from obd.decoders import percent, count, raw_string, pid, encoded_string
-from pint.converters import ScaleConverter
-from pint.definitions import UnitDefinition
-from obd.UnitsAndScaling import Unit as ureg
+from pint import UnitRegistry
+
+# from pint.facets.plain import ScaleConverter
+# from pint.facets.plain import UnitDefinition
+# from obd.UnitsAndScaling import Unit as ureg
 
 logger = logging.getLogger(__name__)
 
-ureg.define(UnitDefinition('percent', 'percent', (), ScaleConverter(1 / 100.0)))
+# ureg.define(UnitDefinition('percent', 'percent', (), ScaleConverter(1 / 100.0)))
+# ureg.define("ppm = count / 1000000 = PPM = parts_per_million")
+
+ureg = UnitRegistry()
+ureg.define("percent = [] = %")
+ureg.define("ratio = []")
+ureg.define("gps = gram / second = GPS = grams_per_second")
+ureg.define("lph = liter / hour = LPH = liters_per_hour")
 ureg.define("ppm = count / 1000000 = PPM = parts_per_million")
+
 
 # useful code insert for debugging decoders
 # place immediately after the function declaration:
