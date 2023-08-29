@@ -657,7 +657,15 @@ Running Raspberry Pi's in headless mode requires WIFI to be configured in advanc
 
 A possible solution is to use add a GPS receiver to the Raspberry Pi to add [Stratum-1 NTP Server](https://www.satsignal.eu/ntp/Raspberry-Pi-NTP.html) capability to the Raspberry Pi.  This works in remote environments were mobile wireless signals are unavailable.  It also requires less work on behalf of the vehicle operator.
 
-The solution currently in use a Raspberry Pi UPS HAT with a built-in real-time clock.  This option, using the [Raspberry Pi UPS HAT](https://www.pishop.us/product/raspberry-pi-ups-hat/) has been working well.  No operator intervention required.
+The solution currently in use a Raspberry Pi UPS HAT with a built-in real-time clock.  This option, using the [Raspberry Pi UPS HAT](https://www.pishop.us/product/raspberry-pi-ups-hat/) had been working well with no operator intervention required.  However, once the Lithium battery got funky, the built-in real-time clock often lost power.  Power loss resets the clock to 1970 almost every time the system boots.
+
+In environments where the following are unavailable:
+
+* battery backed real-time clock
+* Internet access
+* GPS coupled with local Stratum-1 NTP Server
+
+The command line flag ```--output_file_name_counter``` has been added to ```obd_logger``` and ```obd_command_tester``` to ensure the creation of data files with unique invariant identifiers.  These file names assure that data files can be processed in the order they were created.  However, data timestamp information will need downstream processing using GPS data to recalibrate system data.  Examples for this type of downstream processing will be shown in the ```obd_log_to_csv``` package.  See [Telemetry OBD Data To CSV File](https://github.com/thatlarrypearson/telemetry-obd-log-to-csv).
 
 ## Running Raspberry Pi In Vehicle
 
