@@ -143,12 +143,24 @@ def main():
     fast = not args['no_fast']
     timeout = args['timeout']
     verbose = args['verbose']
+    debug = args['logging']
     full_cycles = args['full_cycles']
     shared_dictionary_name = args['shared_dictionary_name']
     shared_dictionary_command_list = args['shared_dictionary_command_list']
     gps_defaults = args['gps_defaults']
     weather_defaults = args['weather_defaults']
     output_file_name_counter = args['output_file_name_counter']
+
+    logging_level = logging.WARNING
+
+    if verbose:
+        logging_level = logging.INFO
+
+    if debug:
+        logging_level = logging.DEBUG
+
+    logging.basicConfig(stream=sys.stdout, level=logging_level)
+    obd.logger.setLevel(logging_level)
 
     if shared_dictionary_name and not SharedDictionaryManager:
         logging.error(f"argument --shared_dictionary_name={shared_dictionary_name} requires UltraDict python package")
@@ -167,17 +179,6 @@ def main():
             shared_dictionary_command_list += default_shared_weather_command_list
     else:
         shared_dictionary = None
-
-    logging_level = logging.WARNING
-
-    if verbose:
-        logging_level = logging.INFO
-
-    if args['logging']:
-        logging_level = logging.DEBUG
-
-    logging.basicConfig(stream=sys.stdout, level=logging_level)
-    obd.logger.setLevel(logging_level)
 
     logging.info(f"argument --fast: {fast}")
     logging.info(f"argument --timeout: {timeout}")
