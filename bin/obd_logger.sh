@@ -84,6 +84,7 @@ do
 		--config_dir "${APP_CONFIG_DIR}" \
 		--full_cycles "${APP_FULL_CYCLES}" \
 		--shared_dictionary_name "${SHARED_DICTIONARY_NAME}" \
+		--gps_defaults \
 		"${APP_BASE_PATH}"
 
 	export RtnVal="$?"

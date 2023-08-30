@@ -168,11 +168,11 @@ def main():
 
     if shared_dictionary_command_list:
         shared_dictionary_command_list = shared_dictionary_command_list.split(sep=',')
+    else:
+        shared_dictionary_command_list = []
 
     if shared_dictionary_name:
         shared_dictionary = SharedDictionaryManager(shared_dictionary_name)
-        if not shared_dictionary_command_list:
-            shared_dictionary_command_list = []
         if gps_defaults:
             shared_dictionary_command_list += default_shared_gps_command_list
         if weather_defaults:
