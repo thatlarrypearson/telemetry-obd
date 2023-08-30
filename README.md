@@ -56,6 +56,20 @@ The timeout value determines how long a read request can take between the underl
 
 ```--no_fast``` can also be used to reduce the number of ```"no response"```s but be aware of the consequences.  For commands that are not available on the vehicle being instrumented, the software may just wait forever for a response that will never come.
 
+#### ```--output_file_name_counter```
+
+```--output_file_name_counter``` changes the way data files are named.  Without this flag, data file names are in the form ```<VIN>-YYYYMMDDhhmmss-utc.json```.  With this flag set, data files are named using the counter stored in a file named in the form ```<VIN>-counter_value.txt``` found in the ```base_path``` directory (defaults to ```data```).  The first time a particular VIN (vehicle identification number) is encountered, the first value will be ```1```.
+
+The **counter** values can be retrieved using the following ```bash``` commands:
+
+```bash
+cd ~/telemetry-obd/data
+for fname in *counter_value.txt
+do
+  echo ${fname}: $(cat ${fname})
+done
+```
+
 #### ```--version```
 
 Responds with the version and exits.
