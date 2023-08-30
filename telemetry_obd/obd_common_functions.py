@@ -149,9 +149,9 @@ def get_config_path(base_path:str, vin:str) -> Path:
     raise ValueError(f"no default.ini or {vin}.ini available")
 
 def get_counter_value(base_path:str, vin:str)->int:
-    # get the counter value (integer) held in the file
-    # f"{base_path}/{vin}-counter_value.txt"
-    path = Path(base_path) / Path(f"{vin}-counter_value.txt")
+    # get the counter value (integer) held in the hidden file
+    # f"{base_path}/.{vin}-counter_value.txt"
+    path = Path(base_path) / Path(f".{vin}-counter_value.txt")
     if path.is_file():
         with open(path,"r") as counter_file:
             counter_value = int(counter_file.read())
@@ -161,9 +161,9 @@ def get_counter_value(base_path:str, vin:str)->int:
     return counter_value
 
 def save_counter_value(base_path:str, vin:str, counter_value:int):
-    # save the counter value (integer) as a string held in the file
-    # f"{base_path}/{vin}-counter_value.txt"
-    path = Path(base_path) / Path(f"{vin}-counter_value.txt")
+    # save the counter value (integer) as a string held in the hidden file
+    # f"{base_path}/.{vin}-counter_value.txt"
+    path = Path(base_path) / Path(f".{vin}-counter_value.txt")
     with open(path, 'w') as counter_file:
         counter_file.write(str(counter_value))
     return

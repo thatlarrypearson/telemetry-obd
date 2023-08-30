@@ -58,7 +58,7 @@ The timeout value determines how long a read request can take between the underl
 
 #### ```--output_file_name_counter```
 
-```--output_file_name_counter``` changes the way data files are named.  Without this flag, data file names are in the form ```<VIN>-YYYYMMDDhhmmss-utc.json```.  With this flag set, data files are named using the counter stored in a file named in the form ```<VIN>-counter_value.txt``` found in the ```base_path``` directory (defaults to ```data```).  The first time a particular VIN (vehicle identification number) is encountered, the first value will be ```1```.
+```--output_file_name_counter``` changes the way data files are named.  Without this flag, data file names are in the file ```<VIN>-YYYYMMDDhhmmss-utc.json```.  With this flag set, data files are named using the counter stored in a hidden file named in the form ```.<VIN>-counter_value.txt``` found in the ```base_path``` directory (defaults to ```data```).  The first time a particular VIN (vehicle identification number) is encountered, the first value will be ```1```.
 
 The **counter** values can be retrieved using the following ```bash``` commands:
 
