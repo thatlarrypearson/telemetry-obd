@@ -177,6 +177,12 @@ def main():
             shared_dictionary_command_list += default_shared_gps_command_list
         if weather_defaults:
             shared_dictionary_command_list += default_shared_weather_command_list
+        if len(shared_dictionary_command_list) == 0:
+            logging.warning(
+                "CONFIGURATION ERROR: " +
+                f"--shared_dictionary_name {shared_dictionary_name} set but " +
+                "--shared_dictionary_command_list, --gps_defaults and --weather_defaults not set"
+            )
     else:
         shared_dictionary = None
 

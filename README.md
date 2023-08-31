@@ -69,6 +69,15 @@ do
   echo ${fname}: $(cat ${fname})
 done
 ```
+#### ```--shared_dictionary_name```
+
+When using ```UltraDict```, the most embarrassing **bug** to find is the one where ```--shared_dictionary_name``` is set in the consuming application (e.g. ```telemetry_obd.obd_logger```) but GPS or weather data just isn't showing up.  When the expected data isn't showing up, add one or more of the following to the command line of ```telemetry_obd.obd_logger```:
+
+- ```--shared_dictionary_command_list```
+- ```--gps_defaults```
+- ```--weather_defaults```
+
+Ask me how I know. :unamused:
 
 #### ```--version```
 
