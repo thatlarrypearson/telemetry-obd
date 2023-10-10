@@ -18,7 +18,7 @@ export APP_FULL_CYCLES=10000
 export APP_TEST_CYCLES=100
 export APP_PYTHON=python3.10
 export DEBUG="True"
-export SHARED_DICTIONARY_NAME="GPS"
+export SHARED_DICTIONARY_NAME="TELEMETRY"
 export TIMEOUT=4.0
 
 # Run Command Tester one time if following file exists

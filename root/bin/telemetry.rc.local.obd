@@ -1,6 +1,6 @@
 #!/usr/bin/bash
 #
-# telemetry.rc.local - This script is executed by the system /etc/rc.local script on system boot
+# telemetry.rc.local.obd - This script is executed by the system /etc/rc.local script on system boot
 
 export OBD_USER="lbp"
 export OBD_GROUP="dialout"
