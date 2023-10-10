@@ -16,12 +16,13 @@ import sys
 import json
 import logging
 import obd
+from telemetry_common_functions import (
+    get_output_file_name,
+)
 from .obd_common_functions import (
     load_custom_commands,
     get_vin_from_vehicle,
     get_elm_info,
-    get_directory,
-    get_output_file_name,
     clean_obd_query_response,
     get_obd_connection,
     execute_obd_command,
@@ -139,12 +140,9 @@ def main():
 
     base_path = args['base_path']
 
-    output_file_path = (get_directory(base_path, vin)) / (
-        get_output_file_name(
-            base_path, f"{vin}-TEST", output_file_name_counter=output_file_name_counter
-        )
-    )
+    output_file_path = get_output_file_name('obd-cmd-test', vin=vin)
     logging.info(f"output file: {output_file_path}")
+
     with open(output_file_path, mode='w', encoding='utf-8') as out_file:
         for cycle in range(cycles):
             logging.info(f"cycle {cycle} in {cycles}")
@@ -160,7 +158,7 @@ def main():
                     obd_response = execute_obd_command(connection, command_name)
 
                 except OffsetUnitCalculusError as e:
-                    logging.exception(f"Excpetion: {e.__class__.__name__}: {e}")
+                    logging.exception(f"Exception: {e.__class__.__name__}: {e}")
                     logging.exception(f"OffsetUnitCalculusError on {command_name}, decoder must be fixed")
                     logging.exception(f"Exception: {e}")
 

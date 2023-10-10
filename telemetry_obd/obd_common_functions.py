@@ -1,7 +1,6 @@
-"""telemetry_obd/common.py: Common functions."""
+"""telemetry_obd/obd_common_functions.py: Common OBD functions."""
 
 from time import sleep
-from pathlib import Path
 from typing import List
 from datetime import datetime, timezone
 import logging
@@ -122,63 +121,6 @@ def get_elm_info(connection):
 
     return str(version_response.value), str(voltage_response.value)
 
-def get_directory(base_path:str, vin:str) -> Path:
-    """Generate directory where data files go."""
-    path = Path(base_path) / Path(vin)
-    path.mkdir(parents=True, exist_ok=True)
-    return path
-
-def get_config_path(base_path:str, vin:str) -> Path:
-    """Return path to settings file."""
-    path = Path(f"{vin}.ini")
-    if path.is_file():
-        return path
-
-    path = Path(base_path) / path
-    if path.is_file():
-        return path
-
-    path = Path('default.ini')
-    if path.is_file():
-        return path
-
-    path = Path(base_path) / path
-    if path.is_file():
-        return path
-
-    raise ValueError(f"no default.ini or {vin}.ini available")
-
-def get_counter_value(base_path:str, vin:str)->int:
-    # get the counter value (integer) held in the hidden file
-    # f"{base_path}/.{vin}-counter_value.txt"
-    path = Path(base_path) / Path(f".{vin}-counter_value.txt")
-    if path.is_file():
-        with open(path,"r") as counter_file:
-            counter_value = int(counter_file.read())
-    else:
-        counter_value = 0
-
-    return counter_value
-
-def save_counter_value(base_path:str, vin:str, counter_value:int):
-    # save the counter value (integer) as a string held in the hidden file
-    # f"{base_path}/.{vin}-counter_value.txt"
-    path = Path(base_path) / Path(f".{vin}-counter_value.txt")
-    with open(path, 'w') as counter_file:
-        counter_file.write(str(counter_value))
-    return
-
-def get_output_file_name(base_path:str, vin:str, output_file_name_counter=False) -> Path:
-    """Create output file name."""
-    if output_file_name_counter:
-        counter_value = get_counter_value(base_path, vin)
-        counter_value += 1
-        save_counter_value(base_path, vin, counter_value)
-        counter_string = (f"{counter_value:10d}").replace(' ', '0')
-        return Path(f"{vin}-{counter_string}.json")
-
-    dt_now = datetime.now(tz=timezone.utc).strftime("%Y%m%d%H%M%S")
-    return Path(f"{vin}-{dt_now}-utc.json")
 
 def load_custom_commands(connection):
     """Load custom commands into a dictionary."""
@@ -229,7 +171,7 @@ def clean_obd_query_response(command_name:str, obd_response):
     fixes problems in OBD connection.query responses.
     - is_null() True to "no response"
     - tuples to lists
-    - bytearrays to strings
+    - byte arrays to strings
     - "NO DATA", "CAN ERROR", etc. to "no response"
     - None to "no response"
     - BitArray to list of True/False values
@@ -341,79 +283,3 @@ def execute_obd_command(connection:obd.OBD, command_name:str):
 
     return obd_response
 
-try:
-    # Not making UltraDict a requirement.
-    from UltraDict import UltraDict
-
-    class SharedDictionaryManager(UltraDict):
-        """
-        Shared Dictionary Manager - Uses a dictionary as the shared memory metaphor.
-        Supports multiple instances within single process so long as 'name'
-        is distinct for each instance.  This is not enforced as this class doesn't
-        use the singleton pattern.
-        Different processes can share the same shared memory/dictionary so long as they use the
-        same value for the 'name' constructor variable.
-        Code assumes there is only one writer and one or more readers for each memory region.  If more
-        more than one writer is needed, create multiple instances, one for each writer.
-        """
-        def __init__(self, name:str):
-            """
-            SharedDictionaryManager constructor
-            arguments
-                name
-                    name of the shared memory/dictionary region
-            """
-            # UltraDict(*arg, name=None, buffer_size=10000, serializer=pickle, shared_lock=False, full_dump_size=None, auto_unlink=True, recurse=False, **kwargs)
-            super().__init__(
-                name=name,
-                buffer_size=1048576,    # 1 MB
-                shared_lock=True,       # enabling multiple writers on shared memory/dictionary
-                full_dump_size=None,    # change this value to buffer_size or larger for Windows machines
-                auto_unlink=False,      # once created, shared memory/dictionary persists on process exit
-                recurse=False           # dictionary can contain dictionary but updates not nested
-            )
-    
-    default_shared_gps_command_list = [
-        "NMEA_GNGNS",       # Fix data
-        "NMEA_GNGST",       # Pseudorange error statistics
-        "NMEA_GNVTG",       # Course over ground and ground speed
-        "NMEA_GNZDA",       # Time and data
-    ]
-
-    default_shared_weather_command_list = [
-        "WTHR_rapid_wind",
-        "WTHR_hub_status",
-        "WTHR_device_status",
-        "WTHR_obs_st",
-        "WTHR_evt_precip",
-    ]
-
-    def shared_dictionary_to_dictionary(shared_dictionary:UltraDict)->dict:
-        # sourcery skip: assign-if-exp, dict-comprehension
-        """
-        Convert UltraDict item to a real dictionary
-        so that the return value will work in json.dumps functions
-        """
-        logging.info(f"shared_dictionary type {type(shared_dictionary)}")
-
-        if 'UltraDict' not in str(type(shared_dictionary)):
-            return shared_dictionary
- 
-        return_value = {}
-        
-        for key, value in shared_dictionary.items():
-            logging.info(f"key {key} value type {type(value)}")
-            if 'UltraDict' in str(type(shared_dictionary)):
-                return_value[key] = shared_dictionary_to_dictionary(value)
-            else:
-                return_value[key] = value
-        
-        return return_value
-
-except ImportError:
-    SharedDictionaryManager = None
-    default_shared_gps_command_list = None
-    default_shared_weather_command_list = None
-
-    def shared_dictionary_to_dictionary(shared_dictionary:dict)->dict:
-        return shared_dictionary

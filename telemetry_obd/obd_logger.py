@@ -14,21 +14,24 @@ import logging
 from traceback import print_exc
 import obd
 from .__init__ import __version__
-from .obd_common_functions import (
-    get_vin_from_vehicle,
-    get_elm_info,
-    get_config_path,
-    CommandNameGenerator,
-    get_directory,
+from .telemetry_common_functions import (
+    get_config_file_path,
     get_output_file_name,
-    clean_obd_query_response,
-    get_obd_connection,
-    recover_lost_connection,
-    execute_obd_command,
+    BASE_PATH,
     SharedDictionaryManager,
     default_shared_gps_command_list,
     default_shared_weather_command_list,
     shared_dictionary_to_dictionary,
+)
+from .obd_common_functions import (
+    get_vin_from_vehicle,
+    get_elm_info,
+    CommandNameGenerator,
+    get_directory,
+    clean_obd_query_response,
+    get_obd_connection,
+    recover_lost_connection,
+    execute_obd_command,
 )
 
 logger = logging.getLogger("obd_logger")
@@ -209,12 +212,12 @@ def main():
 
     config_file = args['config_file']
     config_dir = args['config_dir']
-    base_path = ''.join(args['base_path'])
+    BASE_PATH = ''.join(args['base_path'])
 
     if config_file:
         config_path = Path(config_dir) / Path(config_file)
     else:
-        config_path = get_config_path(config_dir, vin)
+        config_path = get_config_file_path(vin)
 
     command_name_generator = CommandNameGenerator(config_path)
 
@@ -224,11 +227,7 @@ def main():
     shared_dictionary_command_fail = {shared_dictionary_command: 0 for shared_dictionary_command in shared_dictionary_command_list}
 
     while command_name_generator:
-        output_file_path = (get_directory(base_path, vin)) / (
-            get_output_file_name(
-                base_path, vin, output_file_name_counter=output_file_name_counter
-            )
-        )
+        output_file_path = get_output_file_name('obd', vin=vin)
         logging.info(f"output file: {output_file_path}")
         # x - open for exclusive creation, failing if the file already exists
         with open(output_file_path, mode='x', encoding='utf-8') as out_file:
