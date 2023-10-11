@@ -333,10 +333,12 @@ If *Python 3.11*, isn't already installed you will need to compile it from sourc
 
 Once Python 3.10 or Python 3.11 is installed on your system, run the following:
 
+In some newer version of Python, ```pip``` is handled differently and not necessarily better which is why the two following ```pip``` installations have the command line options they do.
+
 ```bash
 # Python pip Install Support
-python3.11 -m pip install --upgrade --user pip
-python3.11 -m pip install --upgrade --user wheel setuptools markdown build
+python3.11 -m pip install --upgrade --force-reinstall --user pip
+python3.11 -m pip install --upgrade --force-reinstall --user wheel setuptools markdown build
 ```
 
 ### Installing ```telemetry_obd``` Package
