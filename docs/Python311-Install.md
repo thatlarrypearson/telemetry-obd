@@ -25,7 +25,7 @@ A ```commmand not found``` response means *python 3.11* must be installed.
 
 If ```Python 3.11```, isn't already installed you will need to make it from source to install it.
 
-Go to the [Python Downloads](https://www.python.org/downloads/source/) page.  Find the most recent version of Python 3.11 from the list.  Currently, the latest 3.11 release is at version 3.11.5.  The build instructions below assume python3.11.5.
+Go to the [Python Downloads](https://www.python.org/downloads/source/) page.  Find the most recent version of Python 3.11 from the list.  Currently, the latest 3.11 release is at version 3.11.6.  The build instructions below assume python3.11.6.
 
 The following commands install all of the system libraries required to build Python 3.11 from source code.
 
@@ -57,10 +57,10 @@ The following builds Python 3.11 from source code.
 # the following makes and installs python3.11 into /usr/local/bin
 # with the libraries in /usr/local/lib.
 cd
-wget https://www.python.org/ftp/python/3.11.5/Python-3.11.5.tgz
+wget https://www.python.org/ftp/python/3.11.6/Python-3.11.6.tgz
 cd /opt
-sudo tar xvzf ~/Python-3.11.5.tgz
-cd Python-3.11.5
+sudo tar xvzf ~/Python-3.11.6.tgz
+cd Python-3.11.6
 
 # compile Python 3.11
 sudo ./configure --enable-optimizations
@@ -71,12 +71,12 @@ sudo make altinstall
 # cleanup
 sudo make clean
 cd /opt
-sudo rm -rf Python-3.11.5
+sudo rm -rf Python-3.11.6
 
 # test installation
 python3.11 --version
 ```
 
-All is well when ```Python 3.11.5``` is returned by the ```python3.11 --version``` command.
+All is well when ```Python 3.11.6``` is returned by the ```python3.11 --version``` command.
 
 The latest available production version of Python 3.11 should be used when available.  The latest versions of source code can always be found on the [Python Source Releases](https://www.python.org/downloads/source/) web page.  Just scan down the list for the first Python 3.11 version.
