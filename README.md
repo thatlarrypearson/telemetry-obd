@@ -13,7 +13,7 @@ The OBD Logger software runs on Python versions 3.10 or newer.
 The Telemetry OBD Logger application command line interface (CLI) is as follows:
 
 ```bash
-$ python3.10 -m telemetry_obd.obd_logger --help
+$ python3.11 -m telemetry_obd.obd_logger --help
 usage: obd_logger.py [-h] [--config_file CONFIG_FILE] [--config_dir CONFIG_DIR] [--full_cycles FULL_CYCLES] [--timeout TIMEOUT] [--logging] [--no_fast]
                      [--shared_dictionary_name SHARED_DICTIONARY_NAME] [--shared_dictionary_command_list SHARED_DICTIONARY_COMMAND_LIST] [--verbose]
                      [--version]
@@ -210,7 +210,7 @@ DEBUG:obd.elm327:read: b'OK\r\r>'
 ```Telemetry OBD Command Tester``` can be used to determine which set of OBD commands are supported by a given vehicle.
 
 ```bash
-$ python3.10 -m telemetry_obd.obd_command_tester --help
+$ python3.11 -m telemetry_obd.obd_command_tester --help
 usage: obd_command_tester.py [-h] [--base_path BASE_PATH] [--cycles CYCLES] [--timeout TIMEOUT] [--logging] [--no_fast] [--verbose]
 
 Telemetry OBD Command Tester
@@ -308,7 +308,7 @@ Validate that your Raspberry Pi has Python version 3.10 or 3.11 available:
 human@hostname:~$ python3 --version
 Python 3.6.9
 # Python 3.10 version
-human@hostname:~$ python3.10 --version
+human@hostname:~$ python3.11 --version
 Python 3.10.13
 human@hostname:~$
 ```
@@ -335,8 +335,8 @@ Once Python 3.10 or Python 3.11 is installed on your system, run the following:
 
 ```bash
 # Python pip Install Support
-python3.10 -m pip install --upgrade --user pip
-python3.10 -m pip install --upgrade --user wheel setuptools markdown build
+python3.11 -m pip install --upgrade --user pip
+python3.11 -m pip install --upgrade --user wheel setuptools markdown build
 ```
 
 ### Installing ```telemetry_obd``` Package
@@ -345,8 +345,8 @@ python3.10 -m pip install --upgrade --user wheel setuptools markdown build
 # get latest version of this software from github repository
 git clone https://github.com/thatlarrypearson/telemetry-obd.git
 cd telemetry-obd
-python3.10 -m build
-python3.10 -m pip install --user dist/telemetry_obd-0.4.1-py3-none-any.whl
+python3.11 -m build
+python3.11 -m pip install --user dist/telemetry_obd-0.4.1-py3-none-any.whl
 
 # make shell programs executable
 chmod 0755 bin/*.sh
@@ -589,7 +589,7 @@ export APP_BASE_PATH="${APP_HOME}/data"
 export APP_LOG_FILE="telemetry-$(date '+%Y-%m-%d %H_%M_%S').log"
 export APP_FULL_CYCLES=1000
 export APP_TEST_CYCLES=5
-export APP_PYTHON=python3.10
+export APP_PYTHON=python3.11
 export DEBUG="True"
 
 # Run Command Tester one time if following file exists

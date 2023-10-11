@@ -10,7 +10,7 @@ export APP_TMP_DIR="${APP_HOME}/tmp"
 export APP_BASE_PATH="${APP_HOME}/data"
 export APP_LOG_FILE="telemetry-$(date '+%Y%m%d_%H%M%S').log"
 export APP_TEST_CYCLES=5
-export APP_PYTHON=python3.10
+export APP_PYTHON=python3.11
 
 # uncomment to turn off stdin
 # 0<&-
