@@ -346,7 +346,7 @@ python3.11 -m pip install --upgrade --user wheel setuptools markdown build
 git clone https://github.com/thatlarrypearson/telemetry-obd.git
 cd telemetry-obd
 python3.11 -m build
-python3.11 -m pip install --user dist/telemetry_obd-0.4.1-py3-none-any.whl
+python3.11 -m pip install --user dist/telemetry_obd-0.4.2-py3-none-any.whl
 
 # make shell programs executable
 chmod 0755 bin/*.sh
