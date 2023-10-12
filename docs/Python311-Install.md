@@ -25,9 +25,17 @@ A ```commmand not found``` response means *python 3.11* must be installed.
 
 If ```Python 3.11```, isn't already installed you will need to make it from source to install it.
 
+If ```python3.11``` responds with a version number, then you need to do the following test to see if it can work for you:
+
+```bash
+python3.11 -m pip install pip --upgrade
+```
+
+If the first line of the response is "```error: externally-managed-environment```" then you can't use the system ```python3.11```.  You must install your own private ```python3.11```.
+
 Go to the [Python Downloads](https://www.python.org/downloads/source/) page.  Find the most recent version of Python 3.11 from the list.  Currently, the latest 3.11 release is at version 3.11.6.  The build instructions below assume python3.11.6.
 
-The following commands install all of the system libraries required to build Python 3.11 from source code.
+The following commands install all of the system libraries required to build Python 3.11 from source code.  You will get better results if you upgrade your Raspberry Pi operating system to version ```12.2 bookworm``` or higher.  See code below to get your operating system version information.
 
 ```bash
 # install build tools
@@ -35,18 +43,27 @@ sudo apt-get update
 sudo apt-get upgrade -y
 sudo apt-get install -y build-essential checkinstall
 
-# look for Raspberry Pi OS version, e.g. '11.3'
+# look for Raspberry Pi OS version
+# e.g. '11.7' is `bullseye`
+# e.g. '12.2' is 'bookworm'
 cat /etc/debian_version
 
-# look for VERSION_CODENAME, e.g. 'bullseye'
+# look for VERSION_CODENAME, e.g. 'bookworm'
 cat /etc/os-release | grep VERSION_CODENAME
 
-# Raspberry Pi OS versions before 11.3 Bullseye
+# Raspberry Pi OS versions before 11.0 Bullseye
 # sudo apt-get install -y libreadline-gplv2-dev
+# sudo apt-get install -y libncursesw5-dev libssl-dev
+# sudo apt-get install -y libsqlite3-dev tk-dev libgdbm-dev libc6-dev libbz2-dev libffi-dev zlib1g-dev
 
-# Raspberry Pi OS version 11.3 Bullseye 
-sudo apt-get install -y libreadline-dev
+# Raspberry Pi OS version 11.x Bullseye 
+# sudo apt-get install -y libreadline-dev
+# sudo apt-get install -y libncursesw5-dev libssl-dev
+# sudo apt-get install -y libsqlite3-dev tk-dev libgdbm-dev libc6-dev libbz2-dev libffi-dev zlib1g-dev
 
+# Raspberry Pi OS version 12.x Bookworm
+sudo apt-get install -y libreadline-dev libgdbm-compat-dev liblzma-dev
+sudo apt-get install -y libncurses5-dev libnss3-dev libffi-dev
 sudo apt-get install -y libncursesw5-dev libssl-dev
 sudo apt-get install -y libsqlite3-dev tk-dev libgdbm-dev libc6-dev libbz2-dev libffi-dev zlib1g-dev
 ```
@@ -58,23 +75,21 @@ The following builds Python 3.11 from source code.
 # with the libraries in /usr/local/lib.
 cd
 wget https://www.python.org/ftp/python/3.11.6/Python-3.11.6.tgz
-cd /opt
-sudo tar xvzf ~/Python-3.11.6.tgz
+tar xvzf ~/Python-3.11.6.tgz
 cd Python-3.11.6
 
 # compile Python 3.11
-sudo ./configure --enable-optimizations
+./configure --enable-optimizations --prefix=${HOME}/.local --exec-prefix=${HOME}/.local --with-ensurepip=install
 
 # install compiled Python 3.11
-sudo make altinstall
+make --jobs=$(nproc) altinstall
 
 # cleanup
-sudo make clean
-cd /opt
-sudo rm -rf Python-3.11.6
+make clean
+rm -rf Python-3.11.6
 
 # test installation
-python3.11 --version
+${HOME}.local/bin/python3.11 --version
 ```
 
 All is well when ```Python 3.11.6``` is returned by the ```python3.11 --version``` command.
