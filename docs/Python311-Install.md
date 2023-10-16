@@ -1,6 +1,8 @@
 # Python 3.11 Installation Instructions
 
-These instructions are for installing Python 3.11 on a Raspberry Pi 4 computer running Rasberry Pi OS Bullseye version 11.3.  With some (or no) modification, these instructions will work on any recent Debian release based Linux distributions.
+These instructions are for installing Python 3.11 on a Raspberry Pi 4 computer running Rasberry Pi OS Bookworm version 12.2.  With some (or no) modification, these instructions will work on any recent Debian release based Linux distributions.
+
+The latest available production version of Python 3.11 should be used when available.  The latest versions of source code can always be found on the [Python Source Releases](https://www.python.org/downloads/source/) web page.  Just scan down the list for the first (and latest) Python 3.11 version.
 
 Ensure that the Raspberry Pi software is completely updated to the most recent release.  One way to do this is as follows:
 
@@ -92,6 +94,55 @@ rm -rf Python-3.11.6
 ${HOME}.local/bin/python3.11 --version
 ```
 
-All is well when ```Python 3.11.6``` is returned by the ```python3.11 --version``` command.
+When ```Python 3.11.6``` is returned by the ```python3.11 --version``` command, then the python installation is complete.
 
-The latest available production version of Python 3.11 should be used when available.  The latest versions of source code can always be found on the [Python Source Releases](https://www.python.org/downloads/source/) web page.  Just scan down the list for the first Python 3.11 version.
+## **Another Important Thing**
+
+The Python version just installed may not be in your execution path and it needs to be so that you can execute the correct ```python3.11``` from the command line.
+
+```bash
+which python3.11
+```
+
+If this returns "```/home/<your user name>/.local/bin/python3.11```", then you may be good to go.
+
+First, check to see if "```.profile```" exists in your home directory and includes "'''.local/bin'''" in your path.
+
+```bash
+cd
+cat .profile
+```
+
+You are good if you see "```PATH="$HOME/.local/bin:$PATH"```" in the following code ```bash``` shell code fragment at the end of the file:
+
+```bash
+# set PATH so it includes user's private bin if it exists
+if [ -d "$HOME/.local/bin" ] ; then
+    PATH="$HOME/.local/bin:$PATH"
+fi
+```
+
+If you don't see the above code fragment in your "```.profile```" file, then add it on at the end.
+
+```bash
+# if you modified .profile
+source .profile
+which python3.11
+```
+
+This should return "```/home/<your user name>/.local/bin/python3.11```".  If so, **Python 3.11 is correctly installed.**  Otherwise start over.
+
+## **Some More Important Things**
+
+Update ```pip```, the Python package installer.
+
+```bash
+# Python pip Install Support
+python3.11 -m pip install --upgrade pip
+```
+
+Install package building tools.
+
+```bash
+python3.11 -m pip install --upgrade wheel setuptools markdown build cython psutil
+```

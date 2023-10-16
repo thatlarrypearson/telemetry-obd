@@ -299,9 +299,9 @@ sudo shutdown -r now
 
 Bluetooth OBD adapters must be *paired* and *trusted* before they can be used.  The *pairing* and *trust* process is covered in [Pairing Bluetooth OBD Devices](./docs/README-BluetoothPairing.md).
 
-### Python 3.10 or Python 3.11
+### Python 3.11
 
-Validate that your Raspberry Pi has Python version 3.10 or 3.11 available:
+Validate that your Raspberry Pi has Python version 3.11 available:
 
 ```bash
 # Python 3 version
@@ -325,21 +325,9 @@ Python 3.11.5
 human@hostname:~$
 ```
 
-If *Python 3.10*, isn't already installed you will need to compile it from source before installing it.  Follow the [Python 3.10 Install Instructions](docs/Python310-Install.md) to download, compile and install Python 3.10.
+If *Python 3.11*, isn't already installed you will need to compile it from source before installing it.  Follow the [Python 3.11 Install Instructions](docs/Python311-Install.md) to download, compile and install the preferred Python 3.11.
 
-*OR*
-
-If *Python 3.11*, isn't already installed you will need to compile it from source before installing it.  Follow the [Python 3.11 Install Instructions](docs/Python311-Install.md) to download, compile and install Python 3.11.
-
-Once Python 3.10 or Python 3.11 is installed on your system, run the following:
-
-In some newer version of Python, ```pip``` is handled differently and not necessarily better which is why the two following ```pip``` installations have the command line options they do.
-
-```bash
-# Python pip Install Support
-python3.11 -m pip install --upgrade --force-reinstall --user pip
-python3.11 -m pip install --upgrade --force-reinstall --user wheel setuptools markdown build
-```
+Alternatively, you may follow the [Python 3.10 Install Instructions](docs/Python310-Install.md) to download, compile and install Python 3.10.
 
 ### Installing ```telemetry_obd``` Package
 
