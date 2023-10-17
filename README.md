@@ -4,7 +4,7 @@ The Telemetry OBD Logger captures vehicle performance data using an OBD interfac
 
 The software is designed to run on Raspberry Pi with Raspberry Pi OS (formerly known as Raspbian) installed.  Bluetooth capabilities are added to the Raspberry Pi through a USB Bluetooth adapter (BT Dongle) and installed software (Bluetooth Driver and tools).
 
-The OBD Logger software runs on Python versions 3.10 or newer.
+The OBD Logger software runs on Python versions 3.11 (optionally 3.10).
 
 ![High Level System View](docs/README-HighLevelSystemView.JPG)
 
@@ -87,9 +87,9 @@ Responds with the version and exits.
 
 While logging, OBD Logger submits a pattern of OBD commands to the vehicle and stores the vehicle's responses.  There are three patterns:
 
-* Startup
-* Housekeeping
-* Cycle
+- Startup
+- Housekeeping
+- Cycle
 
 ![Run Cycles](docs/README-RunCycles.JPG)
 
@@ -97,8 +97,8 @@ While logging, OBD Logger submits a pattern of OBD commands to the vehicle and s
 
 The startup list of OBD commands is only executed when the program starts up.  Typically, this list of OBD commands includes:
 
-* OBD commands whose return values never change (e.g. ```ECU_NAME```, ```ELM_VERSION```, ```ELM_VOLTAGE```)
-* OBD commands with slow changing return values that might be needed for startup baseline like ```AMBIANT_AIR_TEMP``` and ```BAROMETRIC_PRESSURE```.
+- OBD commands whose return values never change (e.g. ```ECU_NAME```, ```ELM_VERSION```, ```ELM_VOLTAGE```)
+- OBD commands with slow changing return values that might be needed for startup baseline like ```AMBIANT_AIR_TEMP``` and ```BAROMETRIC_PRESSURE```.
 
 ##### Housekeeping
 
@@ -151,18 +151,18 @@ Output data files are in a hybrid format.  Data files contain records separated 
 
 #### JSON Fields
 
-* ```command_name```
+- ```command_name```
   OBD command name submitted to vehicle.
 
-* ```obd_response_value```
+- ```obd_response_value```
   OBD response value returned by the vehicle.  When the OBD command gets no response, the response is ```"no response"```.  Response values are either a string like ```"no response"``` and ```"TEST_VIN_22_CHARS"``` or they are a [Pint](https://pint.readthedocs.io/en/stable/) encoded value like ```"25 degC"``` and ```"101 kilopascal"```.
 
   Some OBD commands will respond with multiple values in a list.  The values within the list can also be Pint values.  This works just fine in JSON but the code reading these output files will need to be able to manage embedded lists within the response values.  [Telemetry OBD Data To CSV File](https://github.com/thatlarrypearson/telemetry-obd-log-to-csv) contains two programs, ```obd_log_evaluation``` and ```obd_log_to_csv```, providing good examples of how to handle multiple return values.
 
-* ```iso_ts_pre```
+- ```iso_ts_pre```
   ISO formatted timestamp taken before the OBD command was issued to the vehicle (```datetime.isoformat(datetime.now(tz=timezone.utc))```).
 
-* ```iso_ts_post```
+- ```iso_ts_post```
   ISO formatted timestamp taken after the OBD command was issued to the vehicle (```datetime.isoformat(datetime.now(tz=timezone.utc))```).
 
 [Pint](https://pint.readthedocs.io/en/stable/) encoded values are strings with a numeric part followed by the unit.  For example, ```"25 degC"``` represents 25 degrees Centigrade.  ```"101 kilopascal"``` is around 14.6 PSI (pounds per square inch).  Pint values are used so that the units are always kept with the data and so that unit conversions can easily be done in downstream analysis software.  These strings are easy to deserialize to Pint objects for use in Python programs.
@@ -263,7 +263,7 @@ When creating vehicle specific configuration files, use ```obd_log_evaluation```
 
 ## Raspberry Pi System Installation
 
-The recommended Raspberry Pi system is a [Raspberry Pi 4 Model B](https://www.raspberrypi.com/products/raspberry-pi-4-model-b/) or [Raspberry Pi 400](https://www.raspberrypi.com/products/raspberry-pi-400/) with 4 GB RAM or more.  The full 64 bit release of [Raspberry Pi OS](https://www.raspberrypi.com/software/) version 11 (bullseye) or newer, including the GUI is the recommended operating system.  When choosing a [Micro-SD card](https://en.wikipedia.org/wiki/SD_card) for storage, look for Internet resources like [Best microSD Cards for Raspberry Pi & SBCs](https://bret.dk/best-raspberry-pi-micro-sd-cards/) as a guide to making an appropriate selection.  Select cards 32 GB or larger.
+The recommended Raspberry Pi system is a [Raspberry Pi 4 Model B](https://www.raspberrypi.com/products/raspberry-pi-4-model-b/), [Raspberry Pi 400](https://www.raspberrypi.com/products/raspberry-pi-400/) or Raspberry Pi 5 with 4 GB RAM or more.  The full 64 bit release of [Raspberry Pi OS](https://www.raspberrypi.com/software/) version 12 (bookworm) or newer, including the GUI is the recommended operating system.  When choosing a [Micro-SD card](https://en.wikipedia.org/wiki/SD_card) for storage, look for Internet resources like [Best microSD Cards for Raspberry Pi & SBCs](https://bret.dk/best-raspberry-pi-micro-sd-cards/) as a guide to making an appropriate selection.  Select cards 32 GB or larger.
 
 After installing Raspberry Pi OS on a Raspberry Pi 4 computer,  update the operating system to the newest version.  One way to do this is as follows:
 
@@ -307,21 +307,18 @@ Validate that your Raspberry Pi has Python version 3.11 available:
 # Python 3 version
 human@hostname:~$ python3 --version
 Python 3.6.9
-# Python 3.10 version
-human@hostname:~$ python3.11 --version
-Python 3.10.13
-human@hostname:~$
-```
-
-*OR*
-
-```bash
-# Python 3 version
-human@hostname:~$ python3 --version
-Python 3.6.9
 # Python 3.11 version
 human@hostname:~$ python3.11 --version
 Python 3.11.5
+human@hostname:~$
+```
+
+The latest Raspberry Pi OS version ```Bookworm (12.2)```, ships with Python 3.11 but don't use it.  It has a new feature that will prevent you from using ```pip``` to download necessary Python packages.  Instead, download/make/install Python 3.11 from source following the instructions below.
+
+```bash
+# Python 3 version on Rasberry Pi OS Bookworm Version 12.2
+human@hostname:~$ python3 --version
+Python 3.11.2
 human@hostname:~$
 ```
 
@@ -357,7 +354,7 @@ On Linux/Raspberry Pi, Bluetooth serial device creation is not automatic.  After
 ```bash
 # get the Bluetooth ELM 327 OBD interface's MAC (Media Access Control) address
 sudo bluetoothctl
-[bluetooth]# paired-devices
+[bluetooth]# devices
 Device 00:00:00:33:33:33 OBDII
 [bluetooth]# exit
 # MAC Address for OBD is "00:00:00:33:33:33"
@@ -366,7 +363,7 @@ Device 00:00:00:33:33:33 OBDII
 sudo rfcomm bind rfcomm0 00:00:00:33:33:33
 ```
 
-Realize that before the above can work, the Bluetooth device must have already been paired with the Raspberry Pi.  One easy way to pair is to use the Pi's GUI to access the Bluetooth.  Look for the Bluetooth emblem on the top panel above the cursor.
+Realize that before the above can work, the Bluetooth device must have already been paired to the Raspberry Pi.  One easy way to pair is to use the Raspberry Pi's GUI to access the Bluetooth.  The *pairing* and *trust* process is covered in [Pairing Bluetooth OBD Devices](./docs/README-BluetoothPairing.md).
 
 ![RaspberryPi Bluetooth GUI Utility](docs/README-rpi-gui-bt.jpg)
 
@@ -386,7 +383,7 @@ human@hostname:~ $ sudo adduser human dialout
 
 ### Installing and Enabling Shared Dictionary Feature
 
-The shared dictionary feature requires the UltraDict Python package to be installed using [UltraDict Installation](https://github.com/thatlarrypearson/telemetry-gps/blob/main/docs/README-UltraDict.md) instructions.
+The shared dictionary feature requires the UltraDict Python package to be installed using [UltraDict Installation](docs/README-UltraDict.md) instructions.
 
 Once the package is installed, the feature can be enabled by changing the ```obd_logger.sh``` shell program.  The change involves adding command line options to turn the feature on.
 
@@ -455,7 +452,7 @@ fi
 
 # BEGIN TELEMETRY-OBD SUPPORT
 
-/bin/nohup "/root/bin/telemetry.rc.local" &
+/bin/nohup "/root/bin/telemetry.rc.local.obd" &
 
 # END TELEMETRY-OBD SUPPORT
 
@@ -464,7 +461,7 @@ exit 0
 
 ```/etc/rc.local``` invokes ```/root/bin/telemetry.rc.local```.  The functionality in ```/root/bin/telemetry.rc.local``` is not placed in ```/etc/rc.local``` for these reasons:
 
-* Latest Rasberry Pi OS (```Bullseye```) invokes /etc/rc.local with ```/bin/sh``` (soft link to ```/bin/dash```) which is not the same as ```/usr/bin/bash```, the required shell.
+* Rasberry Pi OS (```Bullseye```) invokes /etc/rc.local with ```/bin/sh``` (soft link to ```/bin/dash```) which is not the same as ```/usr/bin/bash```, the required shell.
 * ```/bin/sh``` is invoked with ```-e``` flag meaning that ```/etc/rc.local``` will stop execution when a pipe fails.  See [bash documentation](https://www.gnu.org/software/bash/manual/bash.pdf).
 * The command ```bluetoothctl```, required to automatically detect and connect to the correct Bluetooth device, generates a pipe failure fault when run in ```/etc/rc.local```.  It will run fine as ```root``` in the terminal.
 
@@ -477,7 +474,7 @@ Shell variables, like ```OBD_USER``` must be changed in ```root/bin/telemetry.rc
 ```bash
 #!/usr/bin/bash
 #
-# telemetry.rc.local - This script is executed by the system /etc/rc.local script on system boot
+# telemetry.rc.local.obd - This script is executed by the system /etc/rc.local script on system boot
 
 export OBD_USER="human"
 export OBD_GROUP="dialout"
@@ -548,11 +545,11 @@ Once the ```root/bin/telemetry.rc.local``` file has been modified, it must be co
 $ cd
 $ cd telemetry-obd/root/bin
 $ sudo mkdir /root/bin
-$ sudo cp telemetry.rc.local /root/bin
-$ sudo chmod 0755 /root/bin/telemetry.rc.local
-$ sudo ls -l /root/bin/telemetry.rc.local
-$ sudo ls -l /root/bin/telemetry.rc.local
--rwxr-xr-x 1 root root 1503 May 31 10:16 /root/bin/telemetry.rc.local
+$ sudo cp telemetry.rc.local.obd /root/bin
+$ sudo chmod 0755 /root/bin/telemetry.rc.local.obd
+$ sudo ls -l /root/bin/telemetry.rc.local.obd
+$ sudo ls -l /root/bin/telemetry.rc.local.obd
+-rwxr-xr-x 1 root root 1503 May 31 10:16 /root/bin/telemetry.rc.local.obd
 $
 ```
 
@@ -655,8 +652,8 @@ done
 
 After the power has been off, an unmodified Raspberry Pi will do one of the following to determine the time it starts up with:
 
-* starts up with the time value stored on disk
-* goes out to the Internet to a Network Time Protocol (NTP) server to get the current time
+- starts up with the time value stored on disk
+- goes out to the Internet to a Network Time Protocol (NTP) server to get the current time
 
 While the Raspberry Pi runs, time updates as expected in its built-in clock and it periodically saves the current time value to disk.  Because the built-in clock only works while the power is on, when the power goes off, the clock stops working.  When power comes back on, the clock starts up from zero time.  During the boot process, the clock gets updated from the disk and later, after the network starts up, an NTP server.  No network, no time update.
 
@@ -674,9 +671,9 @@ The solution currently in use a Raspberry Pi UPS HAT with a built-in real-time c
 
 In environments where the following are unavailable:
 
-* battery backed real-time clock
-* Internet access
-* GPS coupled with local Stratum-1 NTP Server
+- battery backed real-time clock
+- Internet access
+- GPS coupled with local Stratum-1 NTP Server
 
 The command line flag ```--output_file_name_counter``` has been added to ```obd_logger``` and ```obd_command_tester``` to ensure the creation of data files with unique invariant identifiers.  These file names assure that data files can be processed in the order they were created.  However, data timestamp information will need downstream processing using GPS data to recalibrate system data.  Examples for this type of downstream processing will be shown in the ```obd_log_to_csv``` package.  See [Telemetry OBD Data To CSV File](https://github.com/thatlarrypearson/telemetry-obd-log-to-csv).
 
@@ -696,19 +693,19 @@ Depending on the power supply powering the Raspberry Pi, there may also be issue
 
 Before turning on the ignition:
 
-* (Optional) Enable mobile hotspot
-* Plug OBD extension cord into vehicle OBD port.
-* Plug Bluetooth ELM 327 OBD interface into OBD extension cord.
-* Turn on vehicle ignition and start the vehicle.
+- (Optional) Enable mobile hotspot
+- Plug OBD extension cord into vehicle OBD port.
+- Plug Bluetooth ELM 327 OBD interface into OBD extension cord.
+- Turn on vehicle ignition and start the vehicle.
 
 After vehicle is running:
 
-* Connect Bluetooth enabled Raspberry Pi to power.
-* Watch Bluetooth ELM 327 OBD interface lights to ensure that the Raspberry Pi is interacting with the interface within a minute or two.  No flashing lights indicates failure.
+- Connect Bluetooth enabled Raspberry Pi to power.
+- Watch Bluetooth ELM 327 OBD interface lights to ensure that the Raspberry Pi is interacting with the interface within a minute or two.  No flashing lights indicates failure.
 
 After turning off the vehicle:
 
-* Disconnect power from Raspberry Pi.
+- Disconnect power from Raspberry Pi.
 
 ## Software Testing
 
