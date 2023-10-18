@@ -14,10 +14,9 @@ import logging
 from traceback import print_exc
 import obd
 from .__init__ import __version__
-from .telemetry_common_functions import (
+from counter.common import (
     get_config_file_path,
     get_output_file_name,
-    BASE_PATH,
     SharedDictionaryManager,
     default_shared_gps_command_list,
     default_shared_weather_command_list,
@@ -27,7 +26,6 @@ from .obd_common_functions import (
     get_vin_from_vehicle,
     get_elm_info,
     CommandNameGenerator,
-    get_directory,
     clean_obd_query_response,
     get_obd_connection,
     recover_lost_connection,
