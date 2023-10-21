@@ -9,17 +9,25 @@ export STARTUP_DELAY=10
 # Need time for system/vehicle OBD interface recover after failure
 export RESTART_DELAY=60
 
-export APP_HOME="/home/$(whoami)/telemetry-obd"
+export APP_ID="obd"
+export APP_HOME="/home/$(whoami)/telemetry-data"
 export APP_CONFIG_DIR="${APP_HOME}/config"
 export APP_TMP_DIR="${APP_HOME}/tmp"
 export APP_BASE_PATH="${APP_HOME}/data"
-export APP_LOG_FILE="telemetry-$(date '+%Y-%m-%d_%H_%M_%S').log"
 export APP_FULL_CYCLES=10000
 export APP_TEST_CYCLES=100
-export APP_PYTHON=python3.11
+export APP_PYTHON="/home/$(whoami).local/bin/python3.11"
 export DEBUG="True"
 export SHARED_DICTIONARY_NAME="TELEMETRY"
 export TIMEOUT=4.0
+
+# get next application startup counter
+export APP_COUNT=$(${APP_PYTHON} -m counter.app_counter ${APP_ID})
+
+# get current system startup counter
+export BOOT_COUNT=$(${APP_PYTHON} -m counter.boot_counter)
+
+export APP_LOG_FILE="telemetry-${BOOT_COUNT}-${APP_ID}-${APP_COUNT}.log"
 
 # Run Command Tester one time if following file exists
 export COMMAND_TESTER="${APP_HOME}/RunCommandTester"
@@ -61,6 +69,10 @@ sleep ${STARTUP_DELAY}
 
 if [ -f "${COMMAND_TESTER}" ]
 then
+	# get next application startup counter
+	export TEST_APP_COUNT=$(${APP_PYTHON} -m counter.app_counter 'obd-cmd-test')
+	echo ${TEST_APP_COUNT}
+
 	${APP_PYTHON} -m telemetry_obd.obd_command_tester \
 		--timeout "${TIMEOUT}" \
 		--no_fast \
@@ -69,7 +81,6 @@ then
 
 	export RtnVal="$?"
 	echo obd_command_tester returns "${RtnVal}"
-	date '+%Y/%m/%d %H:%M:%S'
 
 	rm -f "${COMMAND_TESTER}"
 	sleep "${COMMAND_TESTER_DELAY}"
@@ -89,7 +100,6 @@ do
 
 	export RtnVal="$?"
 	echo obd_logger returns "${RtnVal}"
-	date '+%Y/%m/%d %H:%M:%S'
 
 	sleep "${RESTART_DELAY}"
 done

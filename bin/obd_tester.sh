@@ -5,12 +5,19 @@
 # Need time for the system to startup the Bluetooth connection
 export STARTUP_DELAY=10
 
-export APP_HOME="/home/$(whoami)/telemetry-obd"
+export APP_HOME="/home/$(whoami)/telemetry-data"
 export APP_TMP_DIR="${APP_HOME}/tmp"
 export APP_BASE_PATH="${APP_HOME}/data"
-export APP_LOG_FILE="telemetry-$(date '+%Y%m%d_%H%M%S').log"
 export APP_TEST_CYCLES=5
-export APP_PYTHON=python3.11
+export APP_PYTHON="/home/$(whoami).local/bin/python3.11"
+
+# get next application startup counter
+export APP_COUNT=$(${APP_PYTHON} -m counter.app_counter ${APP_ID})
+
+# get current system startup counter
+export BOOT_COUNT=$(${APP_PYTHON} -m counter.boot_counter)
+
+export APP_LOG_FILE="telemetry-${BOOT_COUNT}-${APP_ID}-${APP_COUNT}.log"
 
 # uncomment to turn off stdin
 # 0<&-

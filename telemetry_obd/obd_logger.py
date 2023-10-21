@@ -14,14 +14,17 @@ import logging
 from traceback import print_exc
 import obd
 from .__init__ import __version__
+
 from counter.common import (
     get_config_file_path,
     get_output_file_name,
     SharedDictionaryManager,
     default_shared_gps_command_list,
-    default_shared_weather_command_list,
+    default_shared_wthr_command_list,
+    default_shared_imu_command_list,
     shared_dictionary_to_dictionary,
 )
+
 from .obd_common_functions import (
     get_vin_from_vehicle,
     get_elm_info,
@@ -40,6 +43,7 @@ TIMEOUT=1.0
 def argument_parsing()-> dict:
     """Argument parsing"""
     parser = ArgumentParser(description="Telemetry OBD Logger")
+
     parser.add_argument(
         "base_path",
         nargs='?',
@@ -47,16 +51,19 @@ def argument_parsing()-> dict:
         default=["data", ],
         help="Relative or absolute output data directory. Defaults to 'data'."
     )
+
     parser.add_argument(
         "--config_file",
         help="Settings file name. Defaults to '<vehicle-VIN>.ini' or 'default.ini'.",
         default=None
     )
+
     parser.add_argument(
         "--config_dir",
         help="Settings directory path. Defaults to './config'.",
         default='./config'
     )
+
     parser.add_argument(
         '--full_cycles',
         type=int,
@@ -66,6 +73,7 @@ def argument_parsing()-> dict:
             f"  Default is {FULL_CYCLES_COUNT}."
         )
     )
+
     parser.add_argument(
         '--timeout',
         type=float,
@@ -75,12 +83,14 @@ def argument_parsing()-> dict:
             f"  Default is {TIMEOUT} seconds."
         )
     )
+
     parser.add_argument(
         "--logging",
         help="Turn on logging in python-obd library. Default is off.",
         default=False,
         action='store_true'
     )
+
     parser.add_argument(
         "--no_fast",
         help="When on, commands for every request will be unaltered with potentially long timeouts " +
@@ -90,6 +100,7 @@ def argument_parsing()-> dict:
         default=False,
         action='store_true'
     )
+
     parser.add_argument(
         "--shared_dictionary_name",
         default=None,
@@ -100,36 +111,42 @@ def argument_parsing()-> dict:
         default=None,
         help="Comma separated list of shared GPS commands/sentences to be logged (no spaces)"
     )
+
     parser.add_argument(
         "--gps_defaults",
         help="Include GPS defaults in --shared_dictionary_command_list",
         default=False,
         action='store_true'
     )
+
     parser.add_argument(
-        "--weather_defaults",
+        "--wthr_defaults",
         help="Include weather defaults in --shared_dictionary_command_list",
         default=False,
         action='store_true'
     )
+
     parser.add_argument(
-        "--output_file_name_counter",
-        help="Base output file name on counter not timestamps",
+        "--imu_defaults",
+        help="Include IMU defaults in --shared_dictionary_command_list",
         default=False,
         action='store_true'
     )
+
     parser.add_argument(
         "--verbose",
         help="Turn verbose output on. Default is off.",
         default=False,
         action='store_true'
     )
+
     parser.add_argument(
         "--version",
         help="Print version number and exit.",
         default=False,
         action='store_true'
     )
+
     return vars(parser.parse_args())
 
 def main():
@@ -149,8 +166,8 @@ def main():
     shared_dictionary_name = args['shared_dictionary_name']
     shared_dictionary_command_list = args['shared_dictionary_command_list']
     gps_defaults = args['gps_defaults']
-    weather_defaults = args['weather_defaults']
-    output_file_name_counter = args['output_file_name_counter']
+    wthr_defaults = args['wthr_defaults']
+    imu_defaults = args['imu_defaults']
 
     logging_level = logging.WARNING
 
@@ -174,15 +191,21 @@ def main():
 
     if shared_dictionary_name:
         shared_dictionary = SharedDictionaryManager(shared_dictionary_name)
+
         if gps_defaults:
             shared_dictionary_command_list += default_shared_gps_command_list
-        if weather_defaults:
-            shared_dictionary_command_list += default_shared_weather_command_list
+        if wthr_defaults:
+            shared_dictionary_command_list += default_shared_wthr_command_list
+        if imu_defaults:
+            shared_dictionary_command_list += default_shared_imu_command_list
+
         if len(shared_dictionary_command_list) == 0:
             logging.warning(
                 "CONFIGURATION ERROR: " +
                 f"--shared_dictionary_name {shared_dictionary_name} set but " +
-                "--shared_dictionary_command_list, --gps_defaults and --weather_defaults not set"
+                "one of the following must be set: " +
+                "--shared_dictionary_command_list, --gps_defaults, " +
+                "--imu_defaults and/or --wthr_defaults."
             )
     else:
         shared_dictionary = None
@@ -194,8 +217,7 @@ def main():
     logging.info(f"argument --logging: {args['logging']} ")
     logging.info(f"argument --shared_dictionary_name: {shared_dictionary_name}")
     logging.info(f"argument --gps_defaults: {gps_defaults}")
-    logging.info(f"argument --weather_defaults: {weather_defaults}")
-    logging.info(f"argument --output_file_name_counter: {output_file_name_counter}")
+    logging.info(f"argument --wthr_defaults: {wthr_defaults}")
     logging.info(f"argument --shared_dictionary_command_list: {shared_dictionary_command_list}")
     logging.debug("debug logging enabled")
 

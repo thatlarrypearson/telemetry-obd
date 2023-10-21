@@ -10,6 +10,8 @@ The OBD Logger software runs on Python versions 3.11 (optionally 3.10).
 
 ## OBD Logger
 
+### Command Line Usage
+
 The Telemetry OBD Logger application command line interface (CLI) is as follows:
 
 ```bash
@@ -56,26 +58,14 @@ The timeout value determines how long a read request can take between the underl
 
 ```--no_fast``` can also be used to reduce the number of ```"no response"```s but be aware of the consequences.  For commands that are not available on the vehicle being instrumented, the software may just wait forever for a response that will never come.
 
-#### ```--output_file_name_counter```
-
-```--output_file_name_counter``` changes the way data files are named.  Without this flag, data file names are in the file ```<VIN>-YYYYMMDDhhmmss-utc.json```.  With this flag set, data files are named using the counter stored in a hidden file named in the form ```.<VIN>-counter_value.txt``` found in the ```base_path``` directory (defaults to ```data```).  The first time a particular VIN (vehicle identification number) is encountered, the first value will be ```1```.
-
-The **counter** values can be retrieved using the following ```bash``` commands:
-
-```bash
-cd ~/telemetry-obd/data
-for fname in *counter_value.txt
-do
-  echo ${fname}: $(cat ${fname})
-done
-```
 #### ```--shared_dictionary_name```
 
 When using ```UltraDict```, the most embarrassing **bug** to find is the one where ```--shared_dictionary_name``` is set in the consuming application (e.g. ```telemetry_obd.obd_logger```) but GPS or weather data just isn't showing up.  When the expected data isn't showing up, add one or more of the following to the command line of ```telemetry_obd.obd_logger```:
 
 - ```--shared_dictionary_command_list```
 - ```--gps_defaults```
-- ```--weather_defaults```
+- ```--wthr_defaults```
+- ```--imu_defaults```
 
 Ask me how I know. :unamused:
 
@@ -204,6 +194,10 @@ DEBUG:obd.elm327:write: b'ATH1\r'
 DEBUG:obd.elm327:read: b'OK\r\r>'
 [obd.elm327] write: b'ATL0\r'
 ```
+
+### OBD Logger Data File Naming Convention
+
+See [Telemetry System Boot and Application Startup Counter](https://github.com/thatlarrypearson/telemetry-counter).
 
 ## Testing All Available OBD Commands To See Which Ones Work On Your Vehicle
 
@@ -413,7 +407,7 @@ If the default shared dictionary keys are desired, they can be added below ```--
     --weather_defaults \
 ```
 
-```-shared_dictionary_command_list```, ```--gps_defaults``` and ```--weather_defaults``` are used when present in any combination to determine which shared dictionary commands are added into the logged data files.
+```-shared_dictionary_command_list```, ```--gps_defaults``` and ```--wthr_defaults``` are used when present in any combination to determine which shared dictionary commands are added into the logged data files.
 
 The ```--shared_dictionary_name``` option should appear on the line before ```"${APP_BASE_PATH}"```
 
@@ -465,81 +459,19 @@ exit 0
 * ```/bin/sh``` is invoked with ```-e``` flag meaning that ```/etc/rc.local``` will stop execution when a pipe fails.  See [bash documentation](https://www.gnu.org/software/bash/manual/bash.pdf).
 * The command ```bluetoothctl```, required to automatically detect and connect to the correct Bluetooth device, generates a pipe failure fault when run in ```/etc/rc.local```.  It will run fine as ```root``` in the terminal.
 
-### ```/root/bin/telemetry.rc.local```
+### ```telemetry-obd/root/bin/telemetry.rc.local.obd```
 
-```/root/bin/telemetry.rc.local``` must be run as root.  Once the Bluetooth subsystem is configured correctly, it invokes ```bin/obd_logger.sh``` provided in this distribution.
+```telemetry-obd/root/bin/telemetry.rc.local.obd``` must be run as root.  Once the Bluetooth subsystem is configured correctly, it invokes ```bin/obd_logger.sh``` which invokes ```obd_logger.py``` provided in this distribution.
 
 Shell variables, like ```OBD_USER``` must be changed in ```root/bin/telemetry.rc.local``` to match the target system.  The line ```for BT_MAC_ADDR in "00:04:3E:5A:A7:67" "00:19:5D:26:4B:5F"``` must also be changed.  the Bluetooth Media Access Control layer addresses (```"00:04:3E:5A:A7:67" and "00:19:5D:26:4B:5F"```) will need changing to match the target Bluetooth OBD dongle devices.  This address, like an Internet address, must match your current configuration.  Assuming your Bluetooth OBD adapter is currently paired to your Raspberry Pi, click on the Bluetooth icon on your Raspberry Pi desktop and select the ```Devices``` option.
-
-```bash
-#!/usr/bin/bash
-#
-# telemetry.rc.local.obd - This script is executed by the system /etc/rc.local script on system boot
-
-export OBD_USER="human"
-export OBD_GROUP="dialout"
-export OBD_HOME="/home/${OBD_USER}"
-export DEBUG="True"
-export LOG_FILE="/tmp/telemetry-obd_$(date '+%Y-%m-%d_%H:%M:%S').log"
-
-# Debugging support
-if [ "${DEBUG}" == "True" ]
-then
-	# enable shell debug mode
-	set -x
-fi
-
-# turn off stdin
-0<&-
-
-# redirect all stdout and stderr to file
-exec &> "${LOG_FILE}"
-
-# Give Bluetooth subsystem more time to activate
-sleep 5
-
-## Bind the available paired OBDII device to /dev/rfcomm0
-## Change the Bluetooth MAC addresses in the next line to match your addresses
-## One or more MAC addresses matching available Bluetooth OBD devices are required
-## The following tries MAC addresses until a working one is found
-export RtnCode=1
-while [ "${RtnCode}" -ne 0 ]
-do
-  for BT_MAC_ADDR in "00:04:3E:5A:A7:67" "00:19:5D:26:4B:5F"
-  do
-    bluetoothctl connect "${BT_MAC_ADDR}" > /tmp/btctl-connect
-    grep "Connected: yes" /tmp/btctl-connect
-    RtnCode="$?"
-
-    if [ "${RtnCode}" -eq 0 ]
-    then
-      rfcomm bind rfcomm0 "${BT_MAC_ADDR}"
-      break
-    fi
-  done
-
-  if [ "${RtnCode}" -eq 0 ]
-  then
-    echo Ready to start obd_logger.sh
-    break
-  fi
-
-  sleep 5
-done
-
-## Run the script obd_logger.sh as user "${OBD_USER}" and group "${OBD_GROUP}"
-runuser -u "${OBD_USER}" -g dialout "${OBD_HOME}/telemetry-obd/bin/obd_logger.sh" &
-
-exit 0
-```
 
 ![RaspberryPi Bluetooth GUI Utility Devices Dialog](docs/BT-connections.jpg)
 
 The yellow arrow points to where the Bluetooth MAC address is found on the ```Devices``` dialog box.
 
-The ```runuser``` command in "```/root/bin/telemetry.rc.local```" file runs the "```obd_logger.sh```" ```bash``` shell program as user "```human```" and group "```dialout```".
+The ```runuser``` command in "```telemetry-obd/root/bin/telemetry.rc.local.obd```" file runs the "```telemetry-obd/bin/obd_logger.sh```" ```bash``` shell program as user "```human```" and group "```dialout```".
 
-Once the ```root/bin/telemetry.rc.local``` file has been modified, it must be copied to ```/root/bin``` and the file permissions changed:
+Once the ```telemetry-obd/root/bin/telemetry.rc.local.obd``` file has been modified, it must be copied to ```/root/bin``` and the file permissions changed:
 
 ```bash
 $ cd
@@ -553,100 +485,7 @@ $ sudo ls -l /root/bin/telemetry.rc.local.obd
 $
 ```
 
-Make sure both ```obd_logger.sh``` and ```obd_tester.sh``` are executable by using the command ```chmod +x obd_logger.sh obd_tester.sh```.
-
-The ```obd_logger.sh``` shell program is as follows:
-
-```bash
-#!/usr/bin/bash
-# obd_logger.sh
-#
-# Runs OBD Logger
-
-# Need time for the system to startup the Bluetooth connection
-export STARTUP_DELAY=10
-
-# Need time for system/vehicle OBD interface recover after failure
-export RESTART_DELAY=60
-
-export APP_HOME="/home/$(whoami)/telemetry-obd"
-export APP_CONFIG_DIR="${APP_HOME}/config"
-export APP_TMP_DIR="${APP_HOME}/tmp"
-export APP_BASE_PATH="${APP_HOME}/data"
-export APP_LOG_FILE="telemetry-$(date '+%Y-%m-%d %H_%M_%S').log"
-export APP_FULL_CYCLES=1000
-export APP_TEST_CYCLES=5
-export APP_PYTHON=python3.11
-export DEBUG="True"
-
-# Run Command Tester one time if following file exists
-export COMMAND_TESTER="${APP_HOME}/RunCommandTester"
-export COMMAND_TESTER_DELAY=60
-
-# Debugging support
-if [ "${DEBUG}" == "True" ]
-then
-	# enable shell debug mode
-	set -x
-fi
-
-# turn off stdin
-0<&-
-
-# redirect all stdout and stderr to file
-exec &> "${APP_TMP_DIR}/${APP_LOG_FILE}"
-
-date '+%Y/%m/%d %H:%M:%S'
-
-if [ ! -d "${APP_BASE_PATH}" ]
-then
-	mkdir --parents "${APP_BASE_PATH}"
-fi
-
-if [ ! -d "${APP_CONFIG_DIR}" ]
-then
-	mkdir --parents "${APP_CONFIG_DIR}"
-fi
-
-if [ ! -d "${APP_TMP_DIR}" ]
-then
-	mkdir --parents "${APP_TMP_DIR}"
-fi
-
-cd "${APP_HOME}"
-
-sleep ${STARTUP_DELAY}
-
-if [ -f "${COMMAND_TESTER}" ]
-then
-	${APP_PYTHON} -m telemetry_obd.obd_command_tester \
-		--cycle "${APP_TEST_CYCLES}" \
-		--base_path "${APP_BASE_PATH}" \
-		--verbose --logging
-
-	export RtnVal="$?"
-	echo obd_command_tester returns "${RtnVal}"
-	date '+%Y/%m/%d %H:%M:%S'
-
-	rm -f "${COMMAND_TESTER}"
-	sleep "${COMMAND_TESTER_DELAY}"
-fi
-
-while date '+%Y/%m/%d %H:%M:%S'
-do
-	${APP_PYTHON} -m telemetry_obd.obd_logger \
-		--config_file "${APP_CONFIG_FILE}" \
-		--config_dir "${APP_CONFIG_DIR}" \
-		--full_cycles "${APP_FULL_CYCLES}" \
-		"${APP_BASE_PATH}"
-
-	export RtnVal="$?"
-	echo obd_logger returns "${RtnVal}"
-	date '+%Y/%m/%d %H:%M:%S'
-
-	sleep "${RESTART_DELAY}"
-done
-```
+Make both ```obd_logger.sh``` and ```obd_tester.sh``` executable by using the command ```chmod +x obd_logger.sh obd_tester.sh```.
 
 ## Date/Time Accuracy During Data Collection
 
@@ -675,7 +514,9 @@ In environments where the following are unavailable:
 - Internet access
 - GPS coupled with local Stratum-1 NTP Server
 
-The command line flag ```--output_file_name_counter``` has been added to ```obd_logger``` and ```obd_command_tester``` to ensure the creation of data files with unique invariant identifiers.  These file names assure that data files can be processed in the order they were created.  However, data timestamp information will need downstream processing using GPS data to recalibrate system data.  Examples for this type of downstream processing will be shown in the ```obd_log_to_csv``` package.  See [Telemetry OBD Data To CSV File](https://github.com/thatlarrypearson/telemetry-obd-log-to-csv).
+The function ```get_output_file_name()``` from [Telemetry System Boot and Application Startup Counter](https://github.com/thatlarrypearson/telemetry-counter) has been added to ```obd_logger``` and ```obd_tester``` to ensure the creation of data files with unique invariant identifiers.  These file names assure that data files can be processed in the order they were created.  For the file naming to work properly, ```obd_logger``` and ```obd_tester``` need to be started through the bash startup programs found in ```telemetry-obd/bin/```  named ```obd_logger.sh``` and ```obd_tester.sh```.
+
+Data timestamp information may still need downstream processing using embedded GPS data to recalibrate system timestamp data.  Examples for this type of downstream processing can be found in the ```obd_log_to_csv``` package.  See [Telemetry OBD Data To CSV File](https://github.com/thatlarrypearson/telemetry-obd-log-to-csv).
 
 ## Running Raspberry Pi In Vehicle
 
