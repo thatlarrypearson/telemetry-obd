@@ -23,6 +23,7 @@ from counter.common import (
     default_shared_wthr_command_list,
     default_shared_imu_command_list,
     shared_dictionary_to_dictionary,
+    BASE_PATH,
 )
 
 from .obd_common_functions import (
@@ -48,8 +49,8 @@ def argument_parsing()-> dict:
         "base_path",
         nargs='?',
         metavar="base_path",
-        default=["data", ],
-        help="Relative or absolute output data directory. Defaults to 'data'."
+        default=[BASE_PATH, ],
+        help=f"Relative or absolute output data directory. Defaults to '{BASE_PATH}'."
     )
 
     parser.add_argument(
