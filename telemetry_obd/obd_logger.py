@@ -15,7 +15,7 @@ from traceback import print_exc
 import obd
 from .__init__ import __version__
 
-from counter.common import (
+from tcounter.common import (
     get_config_file_path,
     get_output_file_name,
     SharedDictionaryManager,

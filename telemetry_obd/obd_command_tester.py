@@ -16,7 +16,7 @@ import sys
 import json
 import logging
 import obd
-from telemetry_common_functions import (
+from tcounter.common import (
     get_output_file_name,
 )
 from .obd_common_functions import (
