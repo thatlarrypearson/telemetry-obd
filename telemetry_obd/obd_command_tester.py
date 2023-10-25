@@ -18,6 +18,7 @@ import logging
 import obd
 from tcounter.common import (
     get_output_file_name,
+    get_next_application_counter_value,
 )
 from .obd_common_functions import (
     load_custom_commands,
@@ -143,48 +144,53 @@ def main():
     output_file_path = get_output_file_name('obd-cmd-test', vin=vin)
     logging.info(f"output file: {output_file_path}")
 
-    with open(output_file_path, mode='w', encoding='utf-8') as out_file:
-        for cycle in range(cycles):
-            logging.info(f"cycle {cycle} in {cycles}")
-            for command_name in get_command_list():
-                logging.info(f"command_name {command_name}")
+    try:
+        with open(output_file_path, mode='x', encoding='utf-8') as out_file:
+            for cycle in range(cycles):
+                logging.info(f"cycle {cycle} in {cycles}")
+                for command_name in get_command_list():
+                    logging.info(f"command_name {command_name}")
 
-                iso_ts_pre = datetime.isoformat(
-                    datetime.now(tz=timezone.utc)
-                )
+                    iso_ts_pre = datetime.isoformat(
+                        datetime.now(tz=timezone.utc)
+                    )
 
-                try:
+                    try:
 
-                    obd_response = execute_obd_command(connection, command_name)
+                        obd_response = execute_obd_command(connection, command_name)
 
-                except OffsetUnitCalculusError as e:
-                    logging.exception(f"Exception: {e.__class__.__name__}: {e}")
-                    logging.exception(f"OffsetUnitCalculusError on {command_name}, decoder must be fixed")
-                    logging.exception(f"Exception: {e}")
+                    except OffsetUnitCalculusError as e:
+                        logging.exception(f"Exception: {e.__class__.__name__}: {e}")
+                        logging.exception(f"OffsetUnitCalculusError on {command_name}, decoder must be fixed")
+                        logging.exception(f"Exception: {e}")
 
-                except Exception as e:
-                    logging.exception(f"Exception: {e}")
-                    if not connection.is_connected():
-                        logging.error(f"connection failure on {command_name}, reconnecting")
-                        connection.close()
-                        connection = get_obd_connection(fast=fast, timeout=timeout)
+                    except Exception as e:
+                        logging.exception(f"Exception: {e}")
+                        if not connection.is_connected():
+                            logging.error(f"connection failure on {command_name}, reconnecting")
+                            connection.close()
+                            connection = get_obd_connection(fast=fast, timeout=timeout)
 
-                iso_ts_post = datetime.isoformat(
-                    datetime.now(tz=timezone.utc)
-                )
+                    iso_ts_post = datetime.isoformat(
+                        datetime.now(tz=timezone.utc)
+                    )
 
-                obd_response_value = clean_obd_query_response(command_name, obd_response)
+                    obd_response_value = clean_obd_query_response(command_name, obd_response)
 
-                logging.info(f"saving: {command_name}, {obd_response_value}, {iso_ts_pre}, {iso_ts_post}")
+                    logging.info(f"saving: {command_name}, {obd_response_value}, {iso_ts_pre}, {iso_ts_post}")
 
-                out_file.write(json.dumps({
-                            'command_name': command_name,
-                            'obd_response_value': obd_response_value,
-                            'iso_ts_pre': iso_ts_pre,
-                            'iso_ts_post': iso_ts_post,
-                        }) + "\n"
-                )
+                    out_file.write(json.dumps({
+                                'command_name': command_name,
+                                'obd_response_value': obd_response_value,
+                                'iso_ts_pre': iso_ts_pre,
+                                'iso_ts_post': iso_ts_post,
+                            }) + "\n"
+                    )
 
+    except FileExistsError:
+        logger.error(f"open(): FileExistsError: {output_file_path}")
+        imu_counter = get_next_application_counter_value('obd-cmd-test')
+        logger.error(f"get_log_file_handle(): Incremented 'obd-cmd-test' counter to {imu_counter}")
 
 
 if __name__ == "__main__":

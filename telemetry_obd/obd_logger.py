@@ -23,6 +23,7 @@ from tcounter.common import (
     default_shared_wthr_command_list,
     default_shared_imu_command_list,
     shared_dictionary_to_dictionary,
+    get_next_application_counter_value,
     BASE_PATH,
 )
 
@@ -250,85 +251,92 @@ def main():
     while command_name_generator:
         output_file_path = get_output_file_name('obd', vin=vin)
         logging.info(f"output file: {output_file_path}")
-        # x - open for exclusive creation, failing if the file already exists
-        with open(output_file_path, mode='x', encoding='utf-8') as out_file:
 
-            for command_name in command_name_generator:
+        try:
+            # x - open for exclusive creation, failing if the file already exists
+            with open(output_file_path, mode='x', encoding='utf-8') as out_file:
 
-                if shared_dictionary and mid_command_name == command_name:
-                    # Fetch shared dictionary items and place into output stream
-                    for shared_dictionary_command in shared_dictionary_command_list:
-                        if shared_dictionary_command not in shared_dictionary:
-                            if not shared_dictionary_command_fail[shared_dictionary_command] % 1000:
-                                logging.warning(f"key {shared_dictionary_command} not in shared_dictionary ({shared_dictionary_command_fail[shared_dictionary_command]} times)")
-                            shared_dictionary_command_fail[shared_dictionary_command] += 1
-                            continue
-                        logging.info(f"shared dictionary {shared_dictionary_name} command {shared_dictionary_command}")
-                        logging.debug(f"{shared_dictionary_name} {shared_dictionary_command} {shared_dictionary[shared_dictionary_command]}")
-                        if shared_dictionary_command not in shared_dictionary:
-                            logging.info(f"{shared_dictionary_command} not in shared_dictionary")
-                            continue
-                        output_dictionary = shared_dictionary_to_dictionary(shared_dictionary[shared_dictionary_command])
-                        logging.info(f"type {type(output_dictionary)} value {output_dictionary}")
-                        out_file.write(json.dumps(output_dictionary) + "\n")
+                for command_name in command_name_generator:
+
+                    if shared_dictionary and mid_command_name == command_name:
+                        # Fetch shared dictionary items and place into output stream
+                        for shared_dictionary_command in shared_dictionary_command_list:
+                            if shared_dictionary_command not in shared_dictionary:
+                                if not shared_dictionary_command_fail[shared_dictionary_command] % 1000:
+                                    logging.warning(f"key {shared_dictionary_command} not in shared_dictionary ({shared_dictionary_command_fail[shared_dictionary_command]} times)")
+                                shared_dictionary_command_fail[shared_dictionary_command] += 1
+                                continue
+                            logging.info(f"shared dictionary {shared_dictionary_name} command {shared_dictionary_command}")
+                            logging.debug(f"{shared_dictionary_name} {shared_dictionary_command} {shared_dictionary[shared_dictionary_command]}")
+                            if shared_dictionary_command not in shared_dictionary:
+                                logging.info(f"{shared_dictionary_command} not in shared_dictionary")
+                                continue
+                            output_dictionary = shared_dictionary_to_dictionary(shared_dictionary[shared_dictionary_command])
+                            logging.info(f"type {type(output_dictionary)} value {output_dictionary}")
+                            out_file.write(json.dumps(output_dictionary) + "\n")
+                        out_file.flush()
+                        fsync(out_file.fileno())
+
+                    logging.info(f"command_name: {command_name}")
+
+                    if '-' in command_name:
+                        logging.error(f"skipping malformed command_name: {command_name}")
+                        continue
+
+                    iso_ts_pre = datetime.isoformat(
+                        datetime.now(tz=timezone.utc)
+                    )
+
+                    try:
+
+                        obd_response = execute_obd_command(connection, command_name)
+
+                    except OffsetUnitCalculusError as e:
+                        logging.exception(f"Exception: {e.__class__.__name__}: {e}")
+                        logging.exception(f"OffsetUnitCalculusError on {command_name}, decoder must be fixed")
+                        print_exc()
+
+                    except Exception as e:
+                        logging.exception(f"Exception: {e}")
+                        print_exc()
+                        if not connection.is_connected():
+                            logging.info(f"connection failure on {command_name}, reconnecting")
+                            connection.close()
+                            connection = get_obd_connection(fast=fast, timeout=timeout)
+
+                    iso_ts_post = datetime.isoformat(
+                        datetime.now(tz=timezone.utc)
+                    )
+
+                    obd_response_value = clean_obd_query_response(command_name, obd_response)
+
+                    logging.info(f"saving: {command_name}, {obd_response_value}, {iso_ts_pre}, {iso_ts_post}")
+
+                    out_file.write(json.dumps({
+                                'command_name': command_name,
+                                'obd_response_value': obd_response_value,
+                                'iso_ts_pre': iso_ts_pre,
+                                'iso_ts_post': iso_ts_post,
+                            }) + "\n"
+                    )
                     out_file.flush()
                     fsync(out_file.fileno())
 
-                logging.info(f"command_name: {command_name}")
-
-                if '-' in command_name:
-                    logging.error(f"skipping malformed command_name: {command_name}")
-                    continue
-
-                iso_ts_pre = datetime.isoformat(
-                    datetime.now(tz=timezone.utc)
-                )
-
-                try:
-
-                    obd_response = execute_obd_command(connection, command_name)
-
-                except OffsetUnitCalculusError as e:
-                    logging.exception(f"Exception: {e.__class__.__name__}: {e}")
-                    logging.exception(f"OffsetUnitCalculusError on {command_name}, decoder must be fixed")
-                    print_exc()
-
-                except Exception as e:
-                    logging.exception(f"Exception: {e}")
-                    print_exc()
                     if not connection.is_connected():
-                        logging.info(f"connection failure on {command_name}, reconnecting")
-                        connection.close()
-                        connection = get_obd_connection(fast=fast, timeout=timeout)
+                        logging.error(f"connection lost, retrying after {command_name}")
+                        connection = recover_lost_connection(connection, fast=fast, timeout=timeout)
 
-                iso_ts_post = datetime.isoformat(
-                    datetime.now(tz=timezone.utc)
-                )
+                    if (
+                        command_name_generator.full_cycles_count >
+                        full_cycles
+                    ):
+                        command_name_generator.full_cycles_count = 0
+                        break
 
-                obd_response_value = clean_obd_query_response(command_name, obd_response)
-
-                logging.info(f"saving: {command_name}, {obd_response_value}, {iso_ts_pre}, {iso_ts_post}")
-
-                out_file.write(json.dumps({
-                            'command_name': command_name,
-                            'obd_response_value': obd_response_value,
-                            'iso_ts_pre': iso_ts_pre,
-                            'iso_ts_post': iso_ts_post,
-                        }) + "\n"
-                )
-                out_file.flush()
-                fsync(out_file.fileno())
-
-                if not connection.is_connected():
-                    logging.error(f"connection lost, retrying after {command_name}")
-                    connection = recover_lost_connection(connection, fast=fast, timeout=timeout)
-
-                if (
-                    command_name_generator.full_cycles_count >
-                    full_cycles
-                ):
-                    command_name_generator.full_cycles_count = 0
-                    break
+        except FileExistsError:
+            logger.error(f"open(): FileExistsError: {output_file_path}")
+            imu_counter = get_next_application_counter_value('obd')
+            logger.error(f"get_log_file_handle(): Incremented 'obd' counter to {imu_counter}")
 
 if __name__ == "__main__":
     main()
