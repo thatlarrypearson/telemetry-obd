@@ -404,10 +404,11 @@ If the default shared dictionary keys are desired, they can be added below ```--
 
 ```bash
     --gps_defaults \
-    --weather_defaults \
+    --wthr_defaults \
+    --imu_defaults \
 ```
 
-```-shared_dictionary_command_list```, ```--gps_defaults``` and ```--wthr_defaults``` are used when present in any combination to determine which shared dictionary commands are added into the logged data files.
+```-shared_dictionary_command_list```, ```--gps_defaults```, ```--wthr_defaults``` and ```imu_defaults``` are used when present in any combination to determine which shared dictionary commands are added into the logged data files.
 
 The ```--shared_dictionary_name``` option should appear on the line before ```"${APP_BASE_PATH}"```
 
