@@ -25,7 +25,7 @@ export TIMEOUT=4.0
 export APP_COUNT=$(${APP_PYTHON} -m tcounter.app_counter ${APP_ID})
 
 # get current system startup counter
-export BOOT_COUNT=$(${APP_PYTHON} -m tcounter.boot_counter)
+export BOOT_COUNT=$(${APP_PYTHON} -m tcounter.boot_counter --current_boot_count)
 
 export APP_LOG_FILE="telemetry-${BOOT_COUNT}-${APP_ID}-${APP_COUNT}.log"
 
