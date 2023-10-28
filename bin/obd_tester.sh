@@ -9,7 +9,7 @@ export APP_HOME="/home/$(whoami)/telemetry-data"
 export APP_TMP_DIR="${APP_HOME}/tmp"
 export APP_BASE_PATH="${APP_HOME}/data"
 export APP_TEST_CYCLES=5
-export APP_PYTHON="/home/$(whoami).local/bin/python3.11"
+export APP_PYTHON="/home/$(whoami)/.local/bin/python3.11"
 
 # get next application startup counter
 export APP_COUNT=$(${APP_PYTHON} -m tcounter.app_counter ${APP_ID})
