@@ -59,7 +59,7 @@ The following provides a method to verify that the shared memory has been mapped
 ```bash
 $ ps -eaf | grep python3.11 | grep -v grep
 human     384572  380137  0 13:02 pts/2    00:00:00 python3.11 -m gps_logger.gps_logger --shared_dictionary_name GPS --log_file_directory data
-$ pmap -x 384572 | grep -i GPS
+$ sudo pmap -x 384572 | grep -i GPS
 384572:   python3.11 -m gps_logger.gps_logger --shared_dictionary_name GPS --log_file_directory data
 0000007f9027a000    1024       0       0 rw-s- GPS_memory
 0000007f91507000       4       4       4 rw-s- GPS
