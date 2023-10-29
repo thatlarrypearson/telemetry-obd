@@ -96,6 +96,8 @@ do
 		--full_cycles "${APP_FULL_CYCLES}" \
 		--shared_dictionary_name "${SHARED_DICTIONARY_NAME}" \
 		--gps_defaults \
+		--wthr_defaults \
+		--imu_defaults \
 		"${APP_BASE_PATH}"
 
 	export RtnVal="$?"
