@@ -77,7 +77,7 @@ then
 		--timeout "${TIMEOUT}" \
 		--no_fast \
 		--cycle "${APP_TEST_CYCLES}" \
-		--base_path "${APP_BASE_PATH}"
+		"${APP_BASE_PATH}"
 
 	export RtnVal="$?"
 	echo obd_command_tester returns "${RtnVal}"

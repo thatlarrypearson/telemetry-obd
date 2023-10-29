@@ -41,8 +41,8 @@ sleep ${STARTUP_DELAY}
 
 ${APP_PYTHON} -m telemetry_obd.obd_command_tester \
 	--cycle "${APP_TEST_CYCLES}" \
-	--base_path "${APP_BASE_PATH}" \
-	--verbose --logging
+	--verbose --logging \
+	"${APP_BASE_PATH}"
 
 export RtnVal="$?"
 echo

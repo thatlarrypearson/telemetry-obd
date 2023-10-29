@@ -19,6 +19,7 @@ import obd
 from tcounter.common import (
     get_output_file_name,
     get_next_application_counter_value,
+    BASE_PATH,
 )
 from .obd_common_functions import (
     load_custom_commands,
@@ -48,9 +49,11 @@ def argument_parsing()-> dict:
     """Argument parsing"""
     parser = ArgumentParser(description="Telemetry OBD Command Tester")
     parser.add_argument(
-        "--base_path",
-        default="data",
-        help="Relative or absolute output data directory. Defaults to 'data'."
+        "base_path",
+        nargs='?',
+        metavar="base_path",
+        default=[BASE_PATH, ],
+        help=f"Relative or absolute output data directory. Defaults to '{BASE_PATH}'."
     )
     parser.add_argument(
         '--cycles',
@@ -86,12 +89,6 @@ def argument_parsing()-> dict:
         action='store_true'
     )
     parser.add_argument(
-        "--output_file_name_counter",
-        help="Base output file name on counter not timestamps",
-        default=False,
-        action='store_true'
-    )
-    parser.add_argument(
         "--verbose",
         help="Turn verbose output on. Default is off.",
         default=False,
@@ -104,11 +101,11 @@ def main():
 
     args = argument_parsing()
 
+    base_path = args['base_path']
     fast = not args['no_fast']
     timeout = args['timeout']
     verbose = args['verbose']
     cycles = args['cycles']
-    output_file_name_counter = args['output_file_name_counter']
 
     logging_level = logging.WARNING
 
@@ -126,7 +123,6 @@ def main():
     logging.info(f"argument --verbose: {verbose}")
     logging.info(f"argument --cycles: {cycles}")
     logging.info(f"argument --logging: {args['logging']} ")
-    logging.info(f"argument --output_file_name_counter: {output_file_name_counter}")
     logging.debug("debug logging enabled")
 
     connection = get_obd_connection(fast=fast, timeout=timeout)
@@ -141,7 +137,7 @@ def main():
 
     base_path = args['base_path']
 
-    output_file_path = get_output_file_name('obd-cmd-test', vin=vin)
+    output_file_path = get_output_file_name('obd-cmd-test', base_path=base_path, vin=vin)
     logging.info(f"output file: {output_file_path}")
 
     try:
