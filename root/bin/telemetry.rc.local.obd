@@ -34,34 +34,33 @@ bluetoothctl agent on
 # Give Bluetooth subsystem more time to activate
 sleep 45
 
-## Bind the available paired OBDII device to /dev/rfcomm0
-## Change the Bluetooth MAC addresses in the next line to match your addresses
-## One or more MAC addresses matching available Bluetooth OBD devices are required
-## The following tries MAC addresses until a working one is found
+## Bind the available paired OBDII device to /dev/rfcomm0.
+## Change the Bluetooth MAC addresses in the next line to match your addresses.
+## One or more MAC addresses matching available Bluetooth OBD devices are required.
+## The following tries MAC addresses until a working one is found.
+## To make more than one attempt at each/any Bluetooth MAC address, duplicate the address(es) as shown below.
 export RtnCode=1
-while [ "${RtnCode}" -ne 0 ]
+for BT_MAC_ADDR in "00:04:3E:5A:A7:67" "00:19:5D:26:4B:5F"  "00:04:3E:5A:A7:67" "00:19:5D:26:4B:5F" "00:04:3E:5A:A7:67" "00:19:5D:26:4B:5F"
 do
-	for BT_MAC_ADDR in "00:04:3E:5A:A7:67" "00:19:5D:26:4B:5F"
-	do
-        	bluetoothctl connect "${BT_MAC_ADDR}" > /tmp/btctl-connect
-        	grep "Connected: yes" /tmp/btctl-connect
-        	RtnCode="$?"
+	bluetoothctl connect "${BT_MAC_ADDR}" > /tmp/btctl-connect
+	grep "Connected: yes" /tmp/btctl-connect
+	RtnCode="$?"
 
-        	if [ "${RtnCode}" -eq 0 ]
-        	then
-                	rfcomm bind rfcomm0 "${BT_MAC_ADDR}"
-                	break
-        	fi
-	done
-
-    if [ "${RtnCode}" -eq 0 ]
-    then
-               	echo Ready to start obd_logger.sh
-               	break
+	if [ "${RtnCode}" -eq 0 ]
+	then
+			rfcomm bind rfcomm0 "${BT_MAC_ADDR}"
+			break
 	fi
-
 	sleep 5
 done
+
+if [ "${RtnCode}" -ne 0 ]
+then
+	echo Exiting.  Unable to bind serial device to Bluetooth connection.  obd_logger.sh not starting.
+	exit 0
+fi
+
+echo Ready to start obd_logger.sh
 
 ## Run the script obd_logger.sh as user "${OBD_USER}" and group "${OBD_GROUP}"
 runuser -u "${OBD_USER}" -g dialout "${OBD_HOME}/telemetry-obd/bin/obd_logger.sh" &
