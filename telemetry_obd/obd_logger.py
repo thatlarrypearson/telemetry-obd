@@ -4,6 +4,7 @@ telemetry_obd/obd_logger.py: Onboard Diagnostic Data Logger.
 """
 from sys import stdout, stderr
 from os import fsync
+from time import sleep
 from datetime import datetime, timezone
 from pathlib import Path
 from argparse import ArgumentParser
@@ -39,8 +40,9 @@ from .obd_common_functions import (
 
 logger = logging.getLogger("obd_logger")
 
-FULL_CYCLES_COUNT = 50
-TIMEOUT=1.0
+FULL_CYCLES_COUNT = 5000
+TIMEOUT=1.0                         # seconds
+DEFAULT_START_CYCLE_DELAY=1.50      # seconds
 
 def argument_parsing()-> dict:
     """Argument parsing"""
@@ -136,6 +138,13 @@ def argument_parsing()-> dict:
     )
 
     parser.add_argument(
+        "--start_cycle_delay",
+        help=f"Delay in seconds before first OBD command in cycle. Default is {DEFAULT_START_CYCLE_DELAY}.",
+        default=DEFAULT_START_CYCLE_DELAY,
+        type=float,
+    )
+
+    parser.add_argument(
         "--verbose",
         help="Turn verbose output on. Default is off.",
         default=False,
@@ -152,7 +161,9 @@ def argument_parsing()-> dict:
     return vars(parser.parse_args())
 
 def main():
-    """Run main function."""
+    """
+    Run main function.
+    """
 
     args = argument_parsing()
 
@@ -170,6 +181,7 @@ def main():
     gps_defaults = args['gps_defaults']
     wthr_defaults = args['wthr_defaults']
     imu_defaults = args['imu_defaults']
+    start_cycle_delay = args['start_cycle_delay']
 
     logging_level = logging.WARNING
 
@@ -221,6 +233,7 @@ def main():
     logging.info(f"argument --gps_defaults: {gps_defaults}")
     logging.info(f"argument --wthr_defaults: {wthr_defaults}")
     logging.info(f"argument --shared_dictionary_command_list: {shared_dictionary_command_list}")
+    logging.info(f"argument --start_cycle_delay: {start_cycle_delay}")
     logging.debug("debug logging enabled")
 
     # OBD(portstr=None, baudrate=None, protocol=None, fast=True, timeout=0.1, check_voltage=True)
@@ -243,8 +256,10 @@ def main():
 
     command_name_generator = CommandNameGenerator(config_path)
 
-    mid_command_name = command_name_generator.cycle_names[int(len(command_name_generator.cycle_names)/2)]
-    logging.info(f"mid_command_name: {mid_command_name}")
+    first_command_name = command_name_generator.cycle_names[0]
+    last_command_name = command_name_generator.cycle_names[-1]
+    logging.info(f"first_command_name: {first_command_name}")
+    logging.info(f"last_command_name: {last_command_name}")
 
     shared_dictionary_command_fail = {shared_dictionary_command: 0 for shared_dictionary_command in shared_dictionary_command_list}
 
@@ -257,25 +272,9 @@ def main():
             with open(output_file_path, mode='x', encoding='utf-8') as out_file:
 
                 for command_name in command_name_generator:
-
-                    if shared_dictionary and mid_command_name == command_name:
-                        # Fetch shared dictionary items and place into output stream
-                        for shared_dictionary_command in shared_dictionary_command_list:
-                            if shared_dictionary_command not in shared_dictionary:
-                                if not shared_dictionary_command_fail[shared_dictionary_command] % 1000:
-                                    logging.warning(f"key {shared_dictionary_command} not in shared_dictionary ({shared_dictionary_command_fail[shared_dictionary_command]} times)")
-                                shared_dictionary_command_fail[shared_dictionary_command] += 1
-                                continue
-                            logging.info(f"shared dictionary {shared_dictionary_name} command {shared_dictionary_command}")
-                            logging.debug(f"{shared_dictionary_name} {shared_dictionary_command} {shared_dictionary[shared_dictionary_command]}")
-                            if shared_dictionary_command not in shared_dictionary:
-                                logging.info(f"{shared_dictionary_command} not in shared_dictionary")
-                                continue
-                            output_dictionary = shared_dictionary_to_dictionary(shared_dictionary[shared_dictionary_command])
-                            logging.info(f"type {type(output_dictionary)} value {output_dictionary}")
-                            out_file.write(json.dumps(output_dictionary) + "\n")
-                        out_file.flush()
-                        fsync(out_file.fileno())
+                    if first_command_name == command_name:
+                        # insert delay here
+                        sleep(start_cycle_delay)
 
                     logging.info(f"command_name: {command_name}")
 
@@ -321,6 +320,25 @@ def main():
                     )
                     out_file.flush()
                     fsync(out_file.fileno())
+
+                    if shared_dictionary and last_command_name == command_name:
+                        # Fetch shared dictionary items and place into output stream
+                        for shared_dictionary_command in shared_dictionary_command_list:
+                            if shared_dictionary_command not in shared_dictionary:
+                                if not shared_dictionary_command_fail[shared_dictionary_command] % 1000:
+                                    logging.warning(f"key {shared_dictionary_command} not in shared_dictionary ({shared_dictionary_command_fail[shared_dictionary_command]} times)")
+                                shared_dictionary_command_fail[shared_dictionary_command] += 1
+                                continue
+                            logging.info(f"shared dictionary {shared_dictionary_name} command {shared_dictionary_command}")
+                            logging.debug(f"{shared_dictionary_name} {shared_dictionary_command} {shared_dictionary[shared_dictionary_command]}")
+                            if shared_dictionary_command not in shared_dictionary:
+                                logging.info(f"{shared_dictionary_command} not in shared_dictionary")
+                                continue
+                            output_dictionary = shared_dictionary_to_dictionary(shared_dictionary[shared_dictionary_command])
+                            logging.info(f"type {type(output_dictionary)} value {output_dictionary}")
+                            out_file.write(json.dumps(output_dictionary) + "\n")
+                        out_file.flush()
+                        fsync(out_file.fileno())
 
                     if not connection.is_connected():
                         logging.error(f"connection lost, retrying after {command_name}")
