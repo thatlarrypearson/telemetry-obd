@@ -1,5 +1,5 @@
 #!/usr/bin/bash
-# Install_obd.sh
+# Install_telemetry-obd.sh
 #
 
 export APP_HOME="/home/$(whoami)/telemetry-obd"
