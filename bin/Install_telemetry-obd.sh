@@ -20,7 +20,7 @@ then
 	rm -rf "${APP_HOME}/dist"
 fi
 
-${APP_PYTHON} -m pip uninstall telemetry-obd
+${APP_PYTHON} -m pip uninstall -y telemetry-obd
 
 ${APP_PYTHON} -m build .
 ls -l dist/*.whl
