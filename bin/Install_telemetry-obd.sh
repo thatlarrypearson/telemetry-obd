@@ -20,10 +20,11 @@ then
 	rm -rf "${APP_HOME}/dist"
 fi
 
+${APP_PYTHON} -m pip uninstall telemetry-obd
+
 ${APP_PYTHON} -m build .
 ls -l dist/*.whl
-${APP_PYTHON} -m pip install --force-reinstall dist/*.whl
-
+${APP_PYTHON} -m pip install dist/*.whl
 
 ${APP_PYTHON} -m telemetry_obd.obd_logger --help
 ${APP_PYTHON} -m telemetry_obd.obd_command_tester --help
