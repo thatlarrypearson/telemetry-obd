@@ -80,18 +80,20 @@ wget https://www.python.org/ftp/python/3.11.6/Python-3.11.6.tgz
 tar xvzf ~/Python-3.11.6.tgz
 cd Python-3.11.6
 
-# compile Python 3.11
+# configure build Python 3.11
 ./configure --enable-optimizations --prefix=${HOME}/.local --exec-prefix=${HOME}/.local --with-ensurepip=install
 
-# install compiled Python 3.11
-make --jobs=$(nproc) altinstall
+# build/install compiled Python 3.11
+#    the build process can be speeded up using "make --jobs=$(nproc) altinstall"
+#    but this often fails for unknown reasons on Raspberry Pi 4B 4GB RAM
+make altinstall
 
 # cleanup
 make clean
 rm -rf Python-3.11.6
 
 # test installation
-${HOME}.local/bin/python3.11 --version
+${HOME}/.local/bin/python3.11 --version
 ```
 
 When ```Python 3.11.6``` is returned by the ```python3.11 --version``` command, then the python installation is complete.
