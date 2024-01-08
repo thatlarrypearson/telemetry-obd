@@ -120,9 +120,8 @@ def fuel_rate_2(messages):
 
     d = messages[0].data[2:]
 
-    engine_fuel_rate = (((256.0 * d[0]) + d[1]) / 50.0) * ureg.gram / ureg.second if d[0] & 1 else None
-    vehicle_fuel_rate = (((256.0 * d[2]) + d[3]) / 50.0) * ureg.gram / ureg.second if d[0] & 1 else None
-
+    engine_fuel_rate = (((256.0 * d[0]) + d[1]) / 50.0) * ureg.gram / ureg.second
+    vehicle_fuel_rate = (((256.0 * d[2]) + d[3]) / 50.0) * ureg.gram / ureg.second
     return [engine_fuel_rate, vehicle_fuel_rate, ]
 
 def exhaust_flow_rate(messages):
