@@ -5,6 +5,7 @@
 # Need time for the system to startup the Bluetooth connection
 export STARTUP_DELAY=10
 
+export APP_ID="obd"
 export APP_HOME="/home/$(whoami)/telemetry-data"
 export APP_TMP_DIR="${APP_HOME}/tmp"
 export APP_BASE_PATH="${APP_HOME}/data"
