@@ -293,6 +293,13 @@ sudo shutdown -r now
 
 Bluetooth OBD adapters must be *paired* and *trusted* before they can be used.  The *pairing* and *trust* process is covered in [Pairing Bluetooth OBD Devices](./docs/README-BluetoothPairing.md).
 
+### Bluetooth Trouble
+
+After operating system upgrades, Bluetooth may not operate as expected.  Possible solutions may include
+
+- Completely un-pair/remove OBD adapter from Bluetooth configuration followed by a reboot.  Next, boot the system and follow the [Bluetooth pairing instructions](./docs/README-BluetoothPairing.md).
+- Follow instructions in [Use app to connect to pi via bluetooth](https://forums.raspberrypi.com/viewtopic.php?p=947185#p947185).
+
 ### Python 3.11
 
 Validate that your Raspberry Pi has Python version 3.11 available:

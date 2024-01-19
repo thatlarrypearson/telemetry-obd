@@ -9,6 +9,8 @@ export DEBUG="True"
 export TMP_DIR="/root/tmp"
 export LOG_FILE="${TMP_DIR}/telemetry-obd_$(date '+%Y-%m-%d_%H:%M:%S').log"
 
+rm -f /tmp/rfcomm-bind /tmp/btctl-connect
+
 if [ ! -d "${TMP_DIR}" ]
 then
         mkdir --parents "${TMP_DIR}"
@@ -42,15 +44,17 @@ sleep 45
 export RtnCode=1
 for BT_MAC_ADDR in "00:04:3E:5A:A7:67" "00:19:5D:26:4B:5F"  "00:04:3E:5A:A7:67" "00:19:5D:26:4B:5F" "00:04:3E:5A:A7:67" "00:19:5D:26:4B:5F"
 do
-	bluetoothctl connect "${BT_MAC_ADDR}" > /tmp/btctl-connect
+	bluetoothctl connect "${BT_MAC_ADDR}" 2>&1 >> /tmp/btctl-connect
 	grep "Connected: yes" /tmp/btctl-connect
 	RtnCode="$?"
 
 	if [ "${RtnCode}" -eq 0 ]
 	then
-			rfcomm bind rfcomm0 "${BT_MAC_ADDR}"
+			rfcomm bind rfcomm0 "${BT_MAC_ADDR}" 2>&1 >> /tmp/rfcomm-bind
 			break
 	fi
+	echo "${BT_MAC_ADDR}" '##########################' >> /tmp/rfcomm-bind
+	echo "${BT_MAC_ADDR}" '##########################' >> /tmp/btctl-connect
 	sleep 5
 done
 
