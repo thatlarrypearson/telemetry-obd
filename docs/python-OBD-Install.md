@@ -65,3 +65,6 @@ Use exit() or Ctrl-D (i.e. EOF) to exit
 human@hostname:~/python-OBD $
 ```
 
+## LICENSE
+
+[MIT License](../LICENSE.md)

@@ -587,3 +587,7 @@ vehicle Warranty will not cover damage
 caused by an aftermarket plug-in device._"
 
 You use this software at your own risk.
+
+## LICENSE
+
+[MIT License](./LICENSE.md)

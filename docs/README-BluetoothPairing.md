@@ -69,3 +69,7 @@ In the *Connect* dialog, select *Serial Port* as shown and click *Next*.
 In the above, *Device added successfully, but failed to connect*.  It didn't really fail.  The OBD dongle is now accessible.
 
 Don't expect the Raspberry Pi to automatically connect to the OBD device after rebooting.  How to automatically reconnect to Bluetooth devices is covered later in this documentation.
+
+## LICENSE
+
+[MIT License](../LICENSE.md)

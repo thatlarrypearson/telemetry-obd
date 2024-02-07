@@ -148,3 +148,7 @@ Install package building tools.
 ```bash
 python3.11 -m pip install --upgrade wheel setuptools markdown build cython psutil
 ```
+
+## LICENSE
+
+[MIT License](../LICENSE.md)

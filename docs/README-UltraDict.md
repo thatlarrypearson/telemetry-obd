@@ -177,3 +177,7 @@ key        shmid      owner      perms      bytes      nattch     status
 ipcs-doesnt-show-my-shared-memory-and-semaphores)
 
 ```ipcs``` uses the UNIX System V Release 4 shared memory model.  I used that software in the 1980's.  UltraDict uses the modern Linux model for shared memory.  Much better.
+
+## LICENSE
+
+[MIT License](../LICENSE.md)

@@ -94,11 +94,12 @@ do
 		--no_fast \
 		--config_dir "${APP_CONFIG_DIR}" \
 		--full_cycles "${APP_FULL_CYCLES}" \
-		--shared_dictionary_name "${SHARED_DICTIONARY_NAME}" \
-		--gps_defaults \
-		--wthr_defaults \
-		--imu_defaults \
 		"${APP_BASE_PATH}"
+
+		# --shared_dictionary_name "${SHARED_DICTIONARY_NAME}" \
+		# --gps_defaults \
+		# --wthr_defaults \
+		# --imu_defaults \
 
 	export RtnVal="$?"
 	echo obd_logger returns "${RtnVal}"

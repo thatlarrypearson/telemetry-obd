@@ -80,3 +80,7 @@ python3.10 --version
 All is well when ```Python 3.10.13``` is returned by the ```python3.10 --version``` command.
 
 The latest available production version of Python 3.10 should be used when available.  The latest versions of source code can always be found on the [Python Source Releases](https://www.python.org/downloads/source/) web page.  Just scan down the list for the first Python 3.10 version.
+
+## LICENSE
+
+[MIT License](../LICENSE.md)
