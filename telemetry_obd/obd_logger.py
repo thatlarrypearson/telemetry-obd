@@ -42,7 +42,7 @@ logger = logging.getLogger("obd_logger")
 
 FULL_CYCLES_COUNT = 5000
 TIMEOUT=1.0                         # seconds
-DEFAULT_START_CYCLE_DELAY=1.50      # seconds
+DEFAULT_START_CYCLE_DELAY=0         # seconds
 
 def argument_parsing()-> dict:
     """Argument parsing"""
@@ -274,7 +274,8 @@ def main():
                 for command_name in command_name_generator:
                     if first_command_name == command_name:
                         # insert delay here
-                        sleep(start_cycle_delay)
+                        if start_cycle_delay > 0:
+                            sleep(start_cycle_delay)
 
                     logging.info(f"command_name: {command_name}")
 
