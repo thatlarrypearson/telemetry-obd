@@ -154,7 +154,7 @@ def odometer(messages):
 
     return (((((int(d[0]) << 8) + int(d[1]) << 8) + int(d[2])) << 8) + int(d[3]) / 10.0) * ureg.kilometer
 
-def cylender_fuel_rate(messages):
+def cylinder_fuel_rate(messages):
     # returns milligrams per stroke
     # two RPM's per stroke
     if no_data(messages):
@@ -2454,7 +2454,7 @@ NEW_COMMANDS = [
 
     OBDCommand("PIDS_F", "PIDs supported [A1 - C0]", b"01A0", 6, pid, ECU.ENGINE, True),
     OBDCommand("NOX_SENSOR_CORRECTED", "NOx Sensor Corrected Data", b'01A1', 11, nox_sensor_corrected, ECU.ALL, True),
-    OBDCommand("CYLENDER_FUEL_RATE", "Cylender fuel rate", b"01A2", 4, cylender_fuel_rate, ECU.ENGINE, True),
+    OBDCommand("CYLINDER_FUEL_RATE", "Cylinder fuel rate", b"01A2", 4, cylinder_fuel_rate, ECU.ENGINE, True),
     OBDCommand("EVAP_SYS_VAPOR_PRESSURE", "Evaporative System Vapor Pressure", b'01A3', 11, evap_sys_vapor_pressure, ECU.ALL, True),
     OBDCommand("TRANSMISSION_ACTUAL_GEAR", "Transmission actual gear", b"01A4", 4, transmission_actual_gear, ECU.ALL, True),
     OBDCommand("DEF_DOSING", "Diesel Exhaust Fluid Dosing", b'01A5', 6, def_dosing, ECU.ALL, True),
