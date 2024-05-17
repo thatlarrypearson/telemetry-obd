@@ -152,7 +152,7 @@ def odometer(messages):
 
     d = messages[0].data[2:]
 
-    return (((((int(d[0]) << 8) + int(d[1]) << 8) + int(d[2])) << 8) + int(d[3]) / 10.0) * ureg.mile
+    return (((((int(d[0]) << 8) + int(d[1]) << 8) + int(d[2])) << 8) + int(d[3]) / 10.0) * ureg.kilometer
 
 def cylender_fuel_rate(messages):
     # returns milligrams per stroke
