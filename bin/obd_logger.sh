@@ -18,7 +18,6 @@ export APP_FULL_CYCLES=10000
 export APP_TEST_CYCLES=100
 export APP_PYTHON="/home/$(whoami)/.local/bin/python3.11"
 export DEBUG="True"
-export SHARED_DICTIONARY_NAME="TELEMETRY"
 export TIMEOUT=4.0
 
 # get next application startup counter
@@ -88,18 +87,12 @@ fi
 
 while date '+%Y/%m/%d %H:%M:%S'
 do
-	# Enable shared dictionary option
 	${APP_PYTHON} -m telemetry_obd.obd_logger \
 		--timeout "${TIMEOUT}" \
 		--no_fast \
 		--config_dir "${APP_CONFIG_DIR}" \
 		--full_cycles "${APP_FULL_CYCLES}" \
 		"${APP_BASE_PATH}"
-
-		# --shared_dictionary_name "${SHARED_DICTIONARY_NAME}" \
-		# --gps_defaults \
-		# --wthr_defaults \
-		# --imu_defaults \
 
 	export RtnVal="$?"
 	echo obd_logger returns "${RtnVal}"

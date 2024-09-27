@@ -17,7 +17,7 @@ The Telemetry OBD Logger application command line interface (CLI) is as follows:
 ```bash
 $ python3.11 -m telemetry_obd.obd_logger --help
 usage: obd_logger.py [-h] [--config_file CONFIG_FILE] [--config_dir CONFIG_DIR] [--full_cycles FULL_CYCLES] [--timeout TIMEOUT] [--logging] [--no_fast]
-                     [--shared_dictionary_name SHARED_DICTIONARY_NAME] [--shared_dictionary_command_list SHARED_DICTIONARY_COMMAND_LIST] [--verbose]
+                     [--verbose]
                      [--version]
                      [base_path]
 
@@ -41,10 +41,6 @@ options:
                         Default is off.
   --output_file_name_counter
                         Base output file name on counter not timestamps
-  --shared_dictionary_name SHARED_DICTIONARY_NAME
-                        Enable shared memory/dictionary using this name
-  --shared_dictionary_command_list SHARED_DICTIONARY_COMMAND_LIST
-                        Comma separated list of shared NMEA commands/sentences to be logged (no spaces), defaults to all.
   --verbose             Turn verbose output on. Default is off.
   --version             Print version number and exit.
 $
@@ -57,17 +53,6 @@ The timeout value determines how long a read request can take between the underl
 #### ```--no_fast```
 
 ```--no_fast``` can also be used to reduce the number of ```"no response"```s but be aware of the consequences.  For commands that are not available on the vehicle being instrumented, the software may just wait forever for a response that will never come.
-
-#### ```--shared_dictionary_name```
-
-When using ```UltraDict```, the most embarrassing **bug** to find is the one where ```--shared_dictionary_name``` is set in the consuming application (e.g. ```telemetry_obd.obd_logger```) but GPS or weather data just isn't showing up.  When the expected data isn't showing up, add one or more of the following to the command line of ```telemetry_obd.obd_logger```:
-
-- ```--shared_dictionary_command_list```
-- ```--gps_defaults```
-- ```--wthr_defaults```
-- ```--imu_defaults```
-
-Ask me how I know. :unamused:
 
 #### ```--version```
 
@@ -380,48 +365,6 @@ crw-rw---- 1 root dialout 188, 0 Aug 13 15:47 /dev/ttyUSB0
 human@hostname:~ $ ls -l /dev/rfcomm0
 crw-rw---- 1 root dialout 120, 0 Aug 13 15:47 /dev/rfcomm0
 human@hostname:~ $ sudo adduser human dialout
-```
-
-### Installing and Enabling Shared Dictionary Feature
-
-The shared dictionary feature requires the UltraDict Python package to be installed using [UltraDict Installation](docs/README-UltraDict.md) instructions.
-
-Once the package is installed, the feature can be enabled by changing the ```obd_logger.sh``` shell program.  The change involves adding command line options to turn the feature on.
-
-```bash
-	${APP_PYTHON} -m telemetry_obd.obd_logger \
-		--config_file "${APP_CONFIG_FILE}" \
-		--config_dir "${APP_CONFIG_DIR}" \
-		--full_cycles "${APP_FULL_CYCLES}" \
-```
-
-Add the following option to the ```telemetry_obd.obd_logger``` command line below the ```--full_cycles``` option:
-
-```bash
-		--shared_dictionary_name "${SHARED_DICTIONARY_NAME}" \
-```
-
-If specific shared dictionary keys are desired, they can be added below ```--shared_dictionary_name```.
-
-```bash
-    --shared_dictionary_command_list "NMEA_GNGNS,NMEA_GNGST,NMEA_GNVTG,NMEA_GNZDA,WTHR_rapid_wind,WTHR_hub_status,WTHR_device_status,WTHR_obs_st" \
-```
-
-If the default shared dictionary keys are desired, they can be added below ```--shared_dictionary_name```.
-
-```bash
-    --gps_defaults \
-    --wthr_defaults \
-    --imu_defaults \
-```
-
-```-shared_dictionary_command_list```, ```--gps_defaults```, ```--wthr_defaults``` and ```imu_defaults``` are used when present in any combination to determine which shared dictionary commands are added into the logged data files.
-
-The ```--shared_dictionary_name``` option should appear on the line before ```"${APP_BASE_PATH}"```
-
-```bash
-		"${APP_BASE_PATH}"
-
 ```
 
 ## Headless Operation On Raspberry Pi

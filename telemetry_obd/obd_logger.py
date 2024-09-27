@@ -19,11 +19,6 @@ from .__init__ import __version__
 from tcounter.common import (
     get_config_file_path,
     get_output_file_name,
-    SharedDictionaryManager,
-    default_shared_gps_command_list,
-    default_shared_wthr_command_list,
-    default_shared_imu_command_list,
-    shared_dictionary_to_dictionary,
     get_next_application_counter_value,
     BASE_PATH,
 )
@@ -106,38 +101,6 @@ def argument_parsing()-> dict:
     )
 
     parser.add_argument(
-        "--shared_dictionary_name",
-        default=None,
-        help="Enable shared memory/dictionary using this name"
-    )
-    parser.add_argument(
-        "--shared_dictionary_command_list",
-        default=None,
-        help="Comma separated list of shared GPS commands/sentences to be logged (no spaces)"
-    )
-
-    parser.add_argument(
-        "--gps_defaults",
-        help="Include GPS defaults in --shared_dictionary_command_list",
-        default=False,
-        action='store_true'
-    )
-
-    parser.add_argument(
-        "--wthr_defaults",
-        help="Include weather defaults in --shared_dictionary_command_list",
-        default=False,
-        action='store_true'
-    )
-
-    parser.add_argument(
-        "--imu_defaults",
-        help="Include IMU defaults in --shared_dictionary_command_list",
-        default=False,
-        action='store_true'
-    )
-
-    parser.add_argument(
         "--start_cycle_delay",
         help=f"Delay in seconds before first OBD command in cycle. Default is {DEFAULT_START_CYCLE_DELAY}.",
         default=DEFAULT_START_CYCLE_DELAY,
@@ -176,9 +139,7 @@ def main():
     verbose = args['verbose']
     debug = args['logging']
     full_cycles = args['full_cycles']
-    shared_dictionary_name = args['shared_dictionary_name']
-    shared_dictionary_command_list = args['shared_dictionary_command_list']
-    gps_defaults = args['gps_defaults']
+   gps_defaults = args['gps_defaults']
     wthr_defaults = args['wthr_defaults']
     imu_defaults = args['imu_defaults']
     start_cycle_delay = args['start_cycle_delay']
@@ -194,45 +155,11 @@ def main():
     logging.basicConfig(stream=sys.stdout, level=logging_level)
     obd.logger.setLevel(logging_level)
 
-    if shared_dictionary_name and not SharedDictionaryManager:
-        logging.error(f"argument --shared_dictionary_name={shared_dictionary_name} requires UltraDict python package")
-        raise ValueError("USAGE: --shared_dictionary_name requires UltraDict python package")
-
-    if shared_dictionary_command_list:
-        shared_dictionary_command_list = shared_dictionary_command_list.split(sep=',')
-    else:
-        shared_dictionary_command_list = []
-
-    if shared_dictionary_name:
-        shared_dictionary = SharedDictionaryManager(shared_dictionary_name)
-
-        if gps_defaults:
-            shared_dictionary_command_list += default_shared_gps_command_list
-        if wthr_defaults:
-            shared_dictionary_command_list += default_shared_wthr_command_list
-        if imu_defaults:
-            shared_dictionary_command_list += default_shared_imu_command_list
-
-        if len(shared_dictionary_command_list) == 0:
-            logging.warning(
-                "CONFIGURATION ERROR: " +
-                f"--shared_dictionary_name {shared_dictionary_name} set but " +
-                "one of the following must be set: " +
-                "--shared_dictionary_command_list, --gps_defaults, " +
-                "--imu_defaults and/or --wthr_defaults."
-            )
-    else:
-        shared_dictionary = None
-
     logging.info(f"argument --fast: {fast}")
     logging.info(f"argument --timeout: {timeout}")
     logging.info(f"argument --verbose: {verbose}")
     logging.info(f"argument --full_cycles: {full_cycles}")
     logging.info(f"argument --logging: {args['logging']} ")
-    logging.info(f"argument --shared_dictionary_name: {shared_dictionary_name}")
-    logging.info(f"argument --gps_defaults: {gps_defaults}")
-    logging.info(f"argument --wthr_defaults: {wthr_defaults}")
-    logging.info(f"argument --shared_dictionary_command_list: {shared_dictionary_command_list}")
     logging.info(f"argument --start_cycle_delay: {start_cycle_delay}")
     logging.debug("debug logging enabled")
 
@@ -260,8 +187,6 @@ def main():
     last_command_name = command_name_generator.cycle_names[-1]
     logging.info(f"first_command_name: {first_command_name}")
     logging.info(f"last_command_name: {last_command_name}")
-
-    shared_dictionary_command_fail = {shared_dictionary_command: 0 for shared_dictionary_command in shared_dictionary_command_list}
 
     while command_name_generator:
         output_file_path = get_output_file_name('obd', vin=vin)
@@ -321,25 +246,6 @@ def main():
                     )
                     out_file.flush()
                     fsync(out_file.fileno())
-
-                    if shared_dictionary and last_command_name == command_name:
-                        # Fetch shared dictionary items and place into output stream
-                        for shared_dictionary_command in shared_dictionary_command_list:
-                            if shared_dictionary_command not in shared_dictionary:
-                                if not shared_dictionary_command_fail[shared_dictionary_command] % 1000:
-                                    logging.warning(f"key {shared_dictionary_command} not in shared_dictionary ({shared_dictionary_command_fail[shared_dictionary_command]} times)")
-                                shared_dictionary_command_fail[shared_dictionary_command] += 1
-                                continue
-                            logging.info(f"shared dictionary {shared_dictionary_name} command {shared_dictionary_command}")
-                            logging.debug(f"{shared_dictionary_name} {shared_dictionary_command} {shared_dictionary[shared_dictionary_command]}")
-                            if shared_dictionary_command not in shared_dictionary:
-                                logging.info(f"{shared_dictionary_command} not in shared_dictionary")
-                                continue
-                            output_dictionary = shared_dictionary_to_dictionary(shared_dictionary[shared_dictionary_command])
-                            logging.info(f"type {type(output_dictionary)} value {output_dictionary}")
-                            out_file.write(json.dumps(output_dictionary) + "\n")
-                        out_file.flush()
-                        fsync(out_file.fileno())
 
                     if not connection.is_connected():
                         logging.error(f"connection lost, retrying after {command_name}")
