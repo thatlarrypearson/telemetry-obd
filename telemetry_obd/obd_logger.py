@@ -139,9 +139,6 @@ def main():
     verbose = args['verbose']
     debug = args['logging']
     full_cycles = args['full_cycles']
-    gps_defaults = args['gps_defaults']
-    wthr_defaults = args['wthr_defaults']
-    imu_defaults = args['imu_defaults']
     start_cycle_delay = args['start_cycle_delay']
 
     logging_level = logging.WARNING
