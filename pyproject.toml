@@ -2,34 +2,31 @@
 requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
-[metadata]
+[project.scripts]
+obd_logger = "obd_logger:main"
+
+[project]
 name = "telemetry-obd"
-url = "https://github.com/thatlarrypearson/telemetry-obd"
 version = "0.5.0"
 description = "Telemetry OBD Data Logger"
-long_description = "file:README.md"
 authors = [
-    "Larry Pearson <no-reply@gmail.com>",
+    { name = "Larry Pearson", email = "no-reply@gmail.com" },
 ]
 license = "MIT"
 readme = "README.md"
-python = "3.11"
-homepage = "https://github.com/thatlarrypearson/telemetry-obd"
-repository = "https://github.com/thatlarrypearson/telemetry-obd"
-documentation = "https://github.com/thatlarrypearson/telemetry-obd"
+requires-python = ">=3.11"
 keywords = ["obd", "telematics", "vehicle"]
 dependencies = [
   'obd == 0.7.2',
   'pint == 0.20.1',
   'rich >= 10.12.0',
   'obd == 0.7.2',
-  'telemetry-counter == 0.5.0',
+  'telemetry-counter @ git+ssh://github.com/thatlarrypearson/telemetry-counter.git',
 ]
 
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
     "Natural Language :: English",
     "Programming Language :: Python :: 3 :: Only",
@@ -40,4 +37,8 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 
+[project.urls]
+homepage = "https://github.com/thatlarrypearson/telemetry-obd"
+repository = "https://github.com/thatlarrypearson/telemetry-obd"
+documentation = "https://github.com/thatlarrypearson/telemetry-obd"
 
