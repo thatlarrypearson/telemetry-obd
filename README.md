@@ -1,5 +1,9 @@
 # Telemetry OBD Logger
 
+## **NOTICE: REPOSITORIES INTEGRATED INTO SINGLE REPOSITORY**
+
+This repository along with other related repositories have been integrated into [**Vehicle Telemetry System**, a system for collecting and processing motor vehicle data using included sensor modules.](https://github.com/thatlarrypearson/vehicle-telemetry-system).
+
 The Telemetry OBD Logger captures vehicle performance data using an OBD interface device attached to the vehicle.  While the logger is running, it writes output to files.  Data from multiple vehicles can easily be logged.  Data from each different vehicle is stored in a directory/folder matching the vehicle's VIN or vehicle identification number.
 
 The software is designed to run on Raspberry Pi with Raspberry Pi OS (formerly known as Raspbian) installed.  Bluetooth capabilities are added to the Raspberry Pi through a USB Bluetooth adapter (BT Dongle) and installed software (Bluetooth Driver and tools).
